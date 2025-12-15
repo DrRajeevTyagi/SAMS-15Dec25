@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ develop ]  # Only run CI on develop branch, not main
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master ]  # Run CI on PRs to main/master
 
 jobs:
   lint-and-build:
