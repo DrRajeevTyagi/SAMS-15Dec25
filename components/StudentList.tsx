@@ -4,11 +4,9 @@ import { Search, Filter, Download, UserPlus, Eye, ChevronRight, Briefcase, Lock 
 import { Link } from 'react-router-dom';
 import { useSchool } from '../context/SchoolContext';
 import { Student, StudentStream } from '../types';
-import { useToast } from './Toast';
 
 const StudentList: React.FC = () => {
   const { students, classes, addStudent, admissionSchema, currentUser } = useSchool();
-  const toast = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClass, setFilterClass] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -69,7 +67,6 @@ const StudentList: React.FC = () => {
     const gradeMap: Record<string, number> = { 'Nur': -3, 'LKG': -2, 'UKG': -1 };
     const getGradeValue = (className?: string) => {
         if (!className) return -100;
-        if (!className) return -100;
         const grade = className.split('-')[0]; // Extract '12' from '12-A'
         const num = parseInt(grade);
         return isNaN(num) ? (gradeMap[grade] || -10) : num;
@@ -77,9 +74,9 @@ const StudentList: React.FC = () => {
 
     return students
         .filter(student => {
-            const matchesSearch = (student.name && student.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
-                                  (student.admissionNo && student.admissionNo.toLowerCase().includes(searchTerm.toLowerCase()));
-            const matchesClass = filterClass === 'All' || (student.className && student.className.startsWith(filterClass));
+            const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                  student.admissionNo.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesClass = filterClass === 'All' || student.className?.startsWith(filterClass);
             return matchesSearch && matchesClass;
         })
         .sort((a, b) => {
@@ -97,93 +94,16 @@ const StudentList: React.FC = () => {
       setFormData(prev => ({ ...prev, [fieldId]: value }));
   };
 
-  // Validation helper functions
-  const validateContactNumber = (contact: string): boolean => {
-      if (!contact) return true; // Optional field
-      const cleaned = contact.replace(/\D/g, '');
-      return cleaned.length === 10;
-  };
-
-  const validateEmail = (email: string): boolean => {
-      if (!email) return true; // Optional field
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-  };
-
-  const validateDate = (date: string): boolean => {
-      if (!date) return true; // Optional field
-      const dateObj = new Date(date);
-      return dateObj instanceof Date && !isNaN(dateObj.getTime());
-  };
-
   const handleAddStudent = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 1. Check for duplicate admission number
-    if (officeData.admissionNo && Array.isArray(students) && students.some(s => s && s.admissionNo === officeData.admissionNo)) {
-        toast.error(`Admission number ${officeData.admissionNo} already exists. Please use a different number.`);
+    // Core fields validation
+    if (!formData['name']) {
+        alert("Student Name is required");
         return;
     }
 
-    // 2. Validate required fields from admissionSchema
-    const missingRequiredFields: string[] = [];
-    admissionSchema.forEach(field => {
-        if (field.required) {
-            if (field.id === 'admissionNo') {
-                if (!officeData.admissionNo || officeData.admissionNo.trim() === '') {
-                    missingRequiredFields.push(field.label);
-                }
-            } else if (field.isSystem && field.id === 'name') {
-                if (!formData['name'] || formData['name'].trim() === '') {
-                    missingRequiredFields.push(field.label);
-                }
-            } else if (!field.isSystem) {
-                if (!formData[field.id] || formData[field.id].trim() === '') {
-                    missingRequiredFields.push(field.label);
-                }
-            }
-        }
-    });
-
-    if (missingRequiredFields.length > 0) {
-        toast.warning(`Please fill in all required fields: ${missingRequiredFields.join(', ')}`);
-        return;
-    }
-
-    // 3. Validate contact number format
-    if (formData['contactNo'] && !validateContactNumber(formData['contactNo'])) {
-        toast.error("Contact number must be exactly 10 digits.");
-        return;
-    }
-
-    // 4. Validate email format (if email field exists)
-    const emailField = Array.isArray(admissionSchema) ? admissionSchema.find(f => f && (f.id === 'email' || (f.label && f.label.toLowerCase().includes('email')))) : undefined;
-    if (emailField && formData[emailField.id] && !validateEmail(formData[emailField.id])) {
-        toast.error("Please enter a valid email address.");
-        return;
-    }
-
-    // 5. Validate date fields
-    if (formData['dob'] && !validateDate(formData['dob'])) {
-        toast.error("Please enter a valid date of birth.");
-        return;
-    }
-    if (officeData.joiningDate && !validateDate(officeData.joiningDate)) {
-        toast.error("Please enter a valid joining date.");
-        return;
-    }
-
-    // 6. Validate class assignment
-    if (!officeData.classId) {
-        toast.warning("Please assign the student to a class.");
-        return;
-    }
-
-    const assignedClass = Array.isArray(classes) ? classes.find(c => c && c.id === officeData.classId) : undefined;
-    if (!assignedClass) {
-        toast.error("Selected class not found. Please select a valid class.");
-        return;
-    }
+    const assignedClass = classes.find(c => c.id === officeData.classId);
     
     // Extract standard fields
     const newStudent: Student = {
@@ -216,7 +136,7 @@ const StudentList: React.FC = () => {
         if (field.id === 'admissionNo') return;
         
         if (!field.isSystem && formData[field.id]) {
-            if (newStudent.customDetails && typeof newStudent.customDetails === 'object') {
+            if (newStudent.customDetails) {
                 newStudent.customDetails[field.id] = formData[field.id];
             }
         }

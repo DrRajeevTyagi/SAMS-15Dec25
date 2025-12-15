@@ -3,11 +3,9 @@ import React, { useState, useMemo } from 'react';
 import { Plus, Users, ChevronRight, Search, BookOpen } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 import { SchoolClass } from '../types';
-import { useToast } from './Toast';
 
 const ClassManagement: React.FC = () => {
   const { classes, students, teachers, addClass, updateStudentClass, assignClassTeacher } = useSchool();
-  const toast = useToast();
   const [showCreateModal, setShowCreateModal] = useState(false);
   
   // Create Class State
@@ -44,56 +42,18 @@ const ClassManagement: React.FC = () => {
   }, [sortedClasses, selectedClassId]);
 
   const handleCreateClass = () => {
-    // Validation: Check if grade and section are provided
-    if (!newGrade || !newGrade.trim()) {
-      toast.warning('Please enter a grade (e.g., "1", "12", "Nur").');
-      return;
-    }
-    
-    if (!newSection || !newSection.trim()) {
-      toast.warning('Please enter a section (e.g., "A", "B", "C").');
-      return;
-    }
-
-    // Validation: Section should be a single letter
-    const normalizedSection = newSection.trim().toUpperCase();
-    if (normalizedSection.length !== 1 || !/^[A-Z]$/.test(normalizedSection)) {
-      toast.error('Section must be a single letter (A-Z).');
-      return;
-    }
-
-    // Validation: Grade format check
-    const normalizedGrade = newGrade.trim();
-    const validGrades = ['Nur', 'LKG', 'UKG'];
-    const isNumericGrade = /^\d+$/.test(normalizedGrade);
-    const isValidTextGrade = validGrades.includes(normalizedGrade);
-    
-    if (!isNumericGrade && !isValidTextGrade) {
-      toast.error('Grade must be a number (1-12) or one of: Nur, LKG, UKG.');
-      return;
-    }
-
-    // Validation: Numeric grade range check
-    if (isNumericGrade) {
-      const gradeNum = parseInt(normalizedGrade);
-      if (gradeNum < 1 || gradeNum > 12) {
-        toast.error('Grade must be between 1 and 12.');
-        return;
-      }
-    }
-
-    const name = `${normalizedGrade}-${normalizedSection}`;
-    
+    if (!newGrade || !newSection) return;
+    const name = `${newGrade}-${newSection.toUpperCase()}`;
     // Check duplicate
-    if (Array.isArray(classes) && classes.find(c => c && c.name === name)) {
-      toast.error(`Class ${name} already exists!`);
+    if (classes.find(c => c.name === name)) {
+      alert('Class already exists!');
       return;
     }
 
     const newClass: SchoolClass = {
       id: `c${Date.now()}`,
-      grade: normalizedGrade,
-      section: normalizedSection,
+      grade: newGrade,
+      section: newSection.toUpperCase(),
       name: name,
       studentIds: [],
       periodAllocation: [],
@@ -112,19 +72,19 @@ const ClassManagement: React.FC = () => {
     }
   };
 
-  const selectedClass = Array.isArray(sortedClasses) ? sortedClasses.find(c => c && c.id === selectedClassId) : undefined;
-  const studentsInClass = Array.isArray(students) ? students.filter(s => s && s.classId === selectedClassId) : [];
+  const selectedClass = sortedClasses.find(c => c.id === selectedClassId);
+  const studentsInClass = students.filter(s => s.classId === selectedClassId);
   
   // Identify Class Teacher
-  const currentClassTeacher = selectedClass && Array.isArray(teachers) ? teachers.find(t => t && t.id === selectedClass.classTeacherId) : undefined;
+  const currentClassTeacher = teachers.find(t => t.id === selectedClass?.classTeacherId);
   
   // Filter teachers who teach this class (for prioritization in dropdown)
-  const teachersTeachingThisClass = selectedClass && Array.isArray(teachers)
-      ? teachers.filter(t => t && Array.isArray(t.workload) && t.workload.some(w => w && w.classId === selectedClass.id)) 
+  const teachersTeachingThisClass = selectedClass 
+      ? teachers.filter(t => t.workload.some(w => w.classId === selectedClass.id)) 
       : [];
-  const otherTeachers = selectedClass && Array.isArray(teachers)
-      ? teachers.filter(t => t && Array.isArray(t.workload) && !t.workload.some(w => w && w.classId === selectedClass.id))
-      : Array.isArray(teachers) ? teachers : [];
+  const otherTeachers = selectedClass 
+      ? teachers.filter(t => !t.workload.some(w => w.classId === selectedClass.id))
+      : teachers;
 
   // Search for students NOT in the current class
   const searchResults = studentSearch 

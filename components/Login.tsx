@@ -22,14 +22,10 @@ const Login: React.FC = () => {
 
   // --- SMART DEMO CREDENTIAL PICKER ---
   // Student: Prefer Class 11/12 for showing senior features (Streams, etc)
-  const demoStudent = Array.isArray(students) 
-    ? (students.find(s => s && s.className && (s.className.startsWith('11') || s.className.startsWith('12'))) || (students.length > 0 ? students[0] : undefined))
-    : undefined;
+  const demoStudent = students.find(s => s.className && (s.className.startsWith('11') || s.className.startsWith('12'))) || students[0];
   
   // Teacher: Prefer a Class Teacher who is also a House Master (Power User)
-  const demoTeacher = Array.isArray(teachers)
-    ? (teachers.find(t => t && t.isClassTeacher && t.isHouseMaster) || teachers.find(t => t && t.isClassTeacher) || (teachers.length > 0 ? teachers[0] : undefined))
-    : undefined;
+  const demoTeacher = teachers.find(t => t.isClassTeacher && t.isHouseMaster) || teachers.find(t => t.isClassTeacher) || teachers[0];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">

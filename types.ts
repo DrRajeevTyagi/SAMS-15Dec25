@@ -89,10 +89,10 @@ export interface Student {
   activities?: CoCurricularActivity[];
   disciplinaryActions: DisciplinaryAction[]; // NEW: Manual Penalty Cards
   joiningDate: string;
-  
+
   // Dynamic fields storage
   customDetails?: Record<string, string>; // e.g. { "religion": "Hindu", "address": "Delhi..." }
-  
+
   // Standard fields that were previously hardcoded, now part of schema but specific props kept for backward compat
   dob?: string;
   gender?: string;
@@ -168,24 +168,29 @@ export interface EventStaffRole {
   teacherId: string;
   teacherName: string;
   role: string; // e.g., "Hospitality", "Scoring", "Discipline"
-  notes?: string; // Appreciation, remarks, or comments from team members
 }
 
 export interface EventStudentRole {
   studentId: string;
   studentName: string;
   role: 'Participant' | 'Organizer/Volunteer';
+  status: 'volunteered' | 'participant'; // NEW: Tracks volunteer vs selected participant
   specificDuty?: string; // e.g., "Stage Decoration" or "Debate Team A"
   house?: string;
   achievement?: string; // e.g., "1st Position"
-  notes?: string; // Appreciation, remarks, or comments from team members
+  appliedDate?: string; // NEW: When student volunteered
 }
 
-export interface EventVolunteer {
-  studentId: string;
-  studentName: string;
-  appliedDate: string; // When they applied
-  house?: string;
+export interface EventNote {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorRole: UserRole;
+  targetId: string; // ID of student/teacher or event ID
+  targetName: string; // Name of student/teacher or "Event Note"
+  targetType: 'student' | 'staff' | 'event';
+  comment: string;
+  date: string;
 }
 
 export interface SchoolEvent {
@@ -202,29 +207,30 @@ export interface SchoolEvent {
   targetClassIds: string[]; // IDs of classes eligible for this event (e.g. ['c_10_A', 'c_10_B'])
   staffRoles: EventStaffRole[];
   studentRoles: EventStudentRole[];
-  volunteers: EventVolunteer[]; // Students who applied but not yet selected
+  notes: EventNote[]; // NEW: Comments/appreciation for students/staff
   galleryImages?: string[]; // placeholder for image URLs
+  hoursSpent?: number; // NEW: Default hours for activity sync
 }
 
 // --- EXAM SCHEDULE / DATE SHEET TYPES ---
 
 export interface ExamEntry {
-    id: string;
-    date: string;
-    classId: string;
-    className: string;
-    subject: string;
-    startTime: string; // e.g. "09:00 AM"
-    durationMinutes: number; // e.g. 180
+  id: string;
+  date: string;
+  classId: string;
+  className: string;
+  subject: string;
+  startTime: string; // e.g. "09:00 AM"
+  durationMinutes: number; // e.g. 180
 }
 
 export interface ExamSchedule {
-    id: string;
-    title: string; // e.g. "Final Term Examination 2024-25"
-    startDate: string;
-    endDate: string;
-    status: 'Draft' | 'Published' | 'Completed';
-    entries: ExamEntry[];
+  id: string;
+  title: string; // e.g. "Final Term Examination 2024-25"
+  startDate: string;
+  endDate: string;
+  status: 'Draft' | 'Published' | 'Completed';
+  entries: ExamEntry[];
 }
 
 // --- COMMUNITY / COMMUNICATION MODULE TYPES ---
@@ -264,7 +270,7 @@ export interface SchoolContextType {
   currentUser: User | null;
   login: (userId: string) => boolean; // Updated to return success status
   logout: () => void;
-  
+
   students: Student[];
   classes: SchoolClass[];
   teachers: Teacher[];
@@ -272,14 +278,14 @@ export interface SchoolContextType {
   examSchedules: ExamSchedule[];
   events: SchoolEvent[];
   admissionSchema: AdmissionField[];
-  
+
   // Community Data
   messages: Message[];
   polls: Poll[];
-  
+
   // Notice Data
   notices: Notice[];
-  
+
   addStudent: (student: Student) => void;
   updateStudent: (student: Student) => void;
   addClass: (newClass: SchoolClass) => void;
@@ -292,7 +298,7 @@ export interface SchoolContextType {
   addClassSession: (session: ClassSession) => void;
   triggerAutoAllocation: () => void;
   resetData: () => void;
-  loadData: (data: ImportedSchoolData) => void; // IMPORT FEATURE
+  loadData: (data: any) => void; // IMPORT FEATURE
   // Exam Schedule methods
   createExamSchedule: (schedule: ExamSchedule) => void;
   addExamEntry: (scheduleId: string, entry: ExamEntry) => void;
@@ -300,33 +306,21 @@ export interface SchoolContextType {
   // Events
   addEvent: (event: SchoolEvent) => void;
   updateEvent: (event: SchoolEvent) => void; // ADDED THIS
+  addEventNote: (eventId: string, note: EventNote) => void; // NEW
+  deleteEventNote: (eventId: string, noteId: string) => void; // NEW
+  syncEventToActivities: (eventId: string) => void; // NEW
   // Form Config
   updateAdmissionSchema: (newSchema: AdmissionField[]) => void;
-  
+
   // Community Methods
   sendMessage: (msg: Message) => void;
   createPoll: (poll: Poll) => void;
   votePoll: (pollId: string, optionId: string, userId: string) => void;
-  
+
   // Notice Methods
   addNotice: (notice: Notice) => void;
   deleteNotice: (id: string) => void;
-  
+
   // Discipline Methods
   issuePenaltyCard: (studentId: string, action: DisciplinaryAction) => void;
-}
-
-// Data Import/Export Types
-export interface ImportedSchoolData {
-  students?: Student[];
-  classes?: SchoolClass[];
-  teachers?: Teacher[];
-  classSessions?: ClassSession[];
-  examSchedules?: ExamSchedule[];
-  events?: SchoolEvent[];
-  messages?: Message[];
-  polls?: Poll[];
-  notices?: Notice[];
-  admissionSchema?: AdmissionField[];
-  timestamp?: string;
 }

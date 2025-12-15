@@ -6,7 +6,7 @@ import { ExamSchedule, ExamEntry } from '../types';
 
 const ExamScheduler: React.FC = () => {
   const { classes, examSchedules, createExamSchedule, addExamEntry, deleteExamSchedule } = useSchool();
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(Array.isArray(examSchedules) && examSchedules.length > 0 ? examSchedules[0]?.id || null : null);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(examSchedules[0]?.id || null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Sort classes 12 -> Nur for display consistency
@@ -30,17 +30,15 @@ const ExamScheduler: React.FC = () => {
 
   // Add Exam Entry Form
   const [newEntryDate, setNewEntryDate] = useState('');
-  const [newEntryClassId, setNewEntryClassId] = useState(Array.isArray(sortedClasses) && sortedClasses.length > 0 ? sortedClasses[0]?.id || '' : '');
+  const [newEntryClassId, setNewEntryClassId] = useState(sortedClasses[0]?.id || '');
   const [newEntrySubject, setNewEntrySubject] = useState('');
   // Default time kept internally
   const defaultTime = '09:00 AM';
 
   // Derived
-  const selectedSchedule = Array.isArray(examSchedules) ? examSchedules.find(s => s && s.id === selectedScheduleId) : undefined;
-  const selectedClassForEntry = Array.isArray(classes) ? classes.find(c => c && c.id === newEntryClassId) : undefined;
-  const availableSubjects = selectedClassForEntry && Array.isArray(selectedClassForEntry.periodAllocation) 
-    ? selectedClassForEntry.periodAllocation.map(p => p ? p.subject : '').filter(s => s)
-    : [];
+  const selectedSchedule = examSchedules.find(s => s.id === selectedScheduleId);
+  const selectedClassForEntry = classes.find(c => c.id === newEntryClassId);
+  const availableSubjects = selectedClassForEntry ? selectedClassForEntry.periodAllocation.map(p => p.subject) : [];
 
   const handleCreateSchedule = () => {
     if (!newScheduleTitle || !newStartDate) return;
@@ -179,30 +177,16 @@ const ExamScheduler: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {selectedSchedule && Array.isArray(selectedSchedule.entries) ? (
-                            selectedSchedule.entries.length > 0 ? (
-                                selectedSchedule.entries
-                                    .sort((a,b) => {
-                                        const dateA = a?.date ? new Date(a.date).getTime() : 0;
-                                        const dateB = b?.date ? new Date(b.date).getTime() : 0;
-                                        return dateA - dateB;
-                                    })
-                                    .map((entry) => (
-                                        entry ? (
-                                        <tr key={entry.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 font-mono text-gray-600">{entry.date || 'N/A'}</td>
-                                            <td className="px-4 py-3 font-bold text-school-700">{entry.className || 'Unknown'}</td>
-                                            <td className="px-4 py-3 text-gray-800">{entry.subject || 'N/A'}</td>
-                                        </tr>
-                                        ) : null
-                                    ))
-                            ) : (
-                                <tr><td colSpan={3} className="text-center py-10 text-gray-400">No exams scheduled yet. Add from above.</td></tr>
-                            )
-                        ) : (
-                            <tr><td colSpan={3} className="text-center py-10 text-gray-400">No schedule selected.</td></tr>
-                        )}
-                        {selectedSchedule && Array.isArray(selectedSchedule.entries) && selectedSchedule.entries.length === 0 && (
+                        {selectedSchedule.entries
+                            .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                            .map((entry) => (
+                            <tr key={entry.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 font-mono text-gray-600">{entry.date}</td>
+                                <td className="px-4 py-3 font-bold text-school-700">{entry.className}</td>
+                                <td className="px-4 py-3 text-gray-800">{entry.subject}</td>
+                            </tr>
+                        ))}
+                        {selectedSchedule.entries.length === 0 && (
                             <tr><td colSpan={3} className="text-center py-10 text-gray-400">No exams scheduled yet. Add from above.</td></tr>
                         )}
                     </tbody>

@@ -11,7 +11,7 @@ const Academics: React.FC = () => {
     // 1. If Teacher, filter only their classes
     let availableClasses = classes;
     if (currentUser?.role === 'Teacher') {
-        const myProfile = Array.isArray(teachers) ? teachers.find(t => t && t.id === currentUser.id) : undefined;
+        const myProfile = teachers.find(t => t.id === currentUser.id);
         if (myProfile) {
             availableClasses = classes.filter(c => 
                 myProfile.workload.some(w => w.classId === c.id)
@@ -36,7 +36,7 @@ const Academics: React.FC = () => {
   }, [classes, currentUser, teachers]);
 
   // Default to first class (High school) if available
-  const [selectedClassId, setSelectedClassId] = useState(Array.isArray(sortedClasses) && sortedClasses.length > 0 ? sortedClasses[0]?.id || '' : '');
+  const [selectedClassId, setSelectedClassId] = useState(sortedClasses[0]?.id || '');
   const [subject, setSubject] = useState('');
   const [topic, setTopic] = useState('');
   const [absentees, setAbsentees] = useState<string[]>([]);
@@ -44,29 +44,27 @@ const Academics: React.FC = () => {
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Derived state
-  const selectedClass = Array.isArray(classes) ? classes.find(c => c && c.id === selectedClassId) : undefined;
-  const studentsInClass = Array.isArray(students) ? students.filter(s => s && s.classId === selectedClassId) : [];
+  const selectedClass = classes.find(c => c.id === selectedClassId);
+  const studentsInClass = students.filter(s => s.classId === selectedClassId);
   
   // Get subjects. If Teacher, filter only subjects they teach to that class
   const subjects = useMemo(() => {
     if (!selectedClass) return [];
     
     // Base Allocation
-    let subjectList = Array.isArray(selectedClass.periodAllocation)
-        ? selectedClass.periodAllocation
-            .filter(p => p && p.periods > 0)
-            .map(p => p.subject)
-        : [];
+    let subjectList = selectedClass.periodAllocation
+        .filter(p => p.periods > 0)
+        .map(p => p.subject);
 
     // If Teacher, narrow down
     if (currentUser?.role === 'Teacher') {
-        const myProfile = Array.isArray(teachers) ? teachers.find(t => t && t.id === currentUser.id) : undefined;
-        if (myProfile && Array.isArray(myProfile.workload)) {
+        const myProfile = teachers.find(t => t.id === currentUser.id);
+        if (myProfile) {
             const mySubjectsForClass = myProfile.workload
                 .filter(w => w.classId === selectedClassId)
                 .map(w => w.subject);
             // Intersect
-            subjectList = Array.isArray(subjectList) && Array.isArray(mySubjectsForClass) ? subjectList.filter(s => mySubjectsForClass.includes(s)) : [];
+            subjectList = subjectList.filter(s => mySubjectsForClass.includes(s));
         }
     }
 
@@ -75,7 +73,7 @@ const Academics: React.FC = () => {
 
   // Update default subject when class changes
   useEffect(() => {
-    if (Array.isArray(subjects) && subjects.length > 0 && subjects[0]) {
+    if (subjects.length > 0) {
         setSubject(subjects[0]);
     } else {
         setSubject('');
@@ -84,14 +82,14 @@ const Academics: React.FC = () => {
 
   // Ensure we have a valid selection on load if sortedClasses changes
   useEffect(() => {
-      if (!selectedClassId && Array.isArray(sortedClasses) && sortedClasses.length > 0 && sortedClasses[0]) {
+      if (!selectedClassId && sortedClasses.length > 0) {
           setSelectedClassId(sortedClasses[0].id);
       }
   }, [sortedClasses, selectedClassId]);
 
   const toggleAbsentee = (id: string) => {
     setAbsentees(prev => 
-        Array.isArray(prev) && prev.includes(id) ? prev.filter(sid => sid !== id) : [...(Array.isArray(prev) ? prev : []), id]
+        prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
     );
   };
 
@@ -203,13 +201,13 @@ const Academics: React.FC = () => {
                                 key={student.id}
                                 onClick={() => toggleAbsentee(student.id)}
                                 className={`flex items-center justify-between px-3 py-2 rounded-lg border transition-all shadow-sm text-sm text-left ${
-                                    Array.isArray(absentees) && absentees.includes(student.id)
+                                    absentees.includes(student.id)
                                         ? 'bg-red-50 border-red-200 text-red-700 font-medium'
                                         : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                                 }`}
                             >
                                 <span className="truncate">{student.name}</span>
-                                {Array.isArray(absentees) && absentees.includes(student.id) && (
+                                {absentees.includes(student.id) && (
                                     <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 ml-2"></div>
                                 )}
                             </button>

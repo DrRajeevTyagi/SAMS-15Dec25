@@ -33,8 +33,8 @@ const Community: React.FC = () => {
   const displayedMessages = useMemo(() => {
       if (messageFilter === 'received') {
           return messages.filter(m => 
-              (Array.isArray(m.recipientIds) && m.recipientIds.includes(currentUser.id)) || 
-              (Array.isArray(m.recipientIds) && m.recipientIds.includes('ALL_USERS')) ||
+              m.recipientIds.includes(currentUser.id) || 
+              m.recipientIds.includes('ALL_USERS') ||
               (m.recipientGroupLabel && m.recipientGroupLabel.includes('All Staff') && currentUser.role === 'Teacher') ||
               (m.recipientGroupLabel && m.recipientGroupLabel.includes('All Students') && currentUser.role === 'Student')
           );
@@ -53,7 +53,7 @@ const Community: React.FC = () => {
           // Students can only send to specific Teacher/Admin
           if (!selectedRecipientId) return;
           recipients = [selectedRecipientId];
-          const r = Array.isArray(teachers) ? (teachers.find(t => t && t.id === selectedRecipientId) || { name: 'Admin' }) : { name: 'Admin' };
+          const r = teachers.find(t => t.id === selectedRecipientId) || { name: 'Admin' };
           groupLabel = r.name; // Display name
       } else {
           // Admin/Teacher Logic
@@ -71,13 +71,9 @@ const Community: React.FC = () => {
           } else if (targetType === 'Class') {
               if (selectedClassIds.length === 0) return;
               // Add all students from selected classes
-              if (Array.isArray(classes) && Array.isArray(selectedClassIds)) {
-                  classes.filter(c => c && selectedClassIds.includes(c.id)).forEach(c => {
-                      if (c && Array.isArray(c.studentIds)) {
-                          recipients.push(...c.studentIds);
-                      }
-                  });
-              }
+              classes.filter(c => selectedClassIds.includes(c.id)).forEach(c => {
+                  recipients.push(...c.studentIds);
+              });
               groupLabel = `Students of ${selectedClassIds.length} Class(es)`;
           }
       }
@@ -206,7 +202,7 @@ const Community: React.FC = () => {
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-8 h-8 rounded-full bg-school-100 flex items-center justify-center text-xs font-bold text-school-700">
-                                                    {msg.senderName && msg.senderName.length > 0 ? msg.senderName.charAt(0) : '?'}
+                                                    {msg.senderName.charAt(0)}
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-bold text-gray-900">{msg.senderName} <span className="text-xs font-normal text-gray-500">({msg.senderRole})</span></p>
@@ -245,10 +241,8 @@ const Community: React.FC = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pb-4">
                         {displayedPolls.map(poll => {
-                            const hasVoted = Array.isArray(poll.votedUserIds) && poll.votedUserIds.includes(currentUser.id);
-                            const totalVotes = Array.isArray(poll.options) 
-                              ? poll.options.reduce((sum, opt) => sum + (opt?.votes || 0), 0)
-                              : 0;
+                            const hasVoted = poll.votedUserIds.includes(currentUser.id);
+                            const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
 
                             return (
                                 <div key={poll.id} className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -371,7 +365,7 @@ const Community: React.FC = () => {
                                             <label key={cls.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                                                 <input 
                                                     type="checkbox" 
-                                                    checked={Array.isArray(selectedClassIds) && selectedClassIds.includes(cls.id)}
+                                                    checked={selectedClassIds.includes(cls.id)}
                                                     onChange={(e) => {
                                                         if (e.target.checked) setSelectedClassIds(prev => [...prev, cls.id]);
                                                         else setSelectedClassIds(prev => prev.filter(id => id !== cls.id));

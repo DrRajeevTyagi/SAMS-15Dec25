@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Plus, Calendar, MapPin, ChevronRight, User, Palette, Microscope, Trophy, Music, BookOpen, Users as UsersIcon, Award, TrendingUp, CheckSquare, Square, AlertTriangle, Flame, Globe, Building2, Check, History, Sparkles, CheckCircle } from 'lucide-react';
+import { Plus, Calendar, MapPin, ChevronRight, User, Palette, Microscope, Trophy, Music, BookOpen, Users as UsersIcon, Award, TrendingUp, CheckSquare, Square, AlertTriangle, Flame, Globe, Building2, Check, History, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SchoolEvent } from '../types';
 import { useSchool } from '../context/SchoolContext';
@@ -55,7 +55,7 @@ const Events: React.FC = () => {
 
     const isStudent = currentUser?.role === 'Student';
     const isAdmin = currentUser?.role === 'Admin';
-    const studentProfile = isStudent && Array.isArray(students) ? students.find(s => s && s.id === currentUser.id) : null;
+    const studentProfile = isStudent ? students.find(s => s.id === currentUser.id) : null;
 
     // --- HOUSE POINT LOGIC ---
     const houseStats = useMemo(() => {
@@ -68,51 +68,43 @@ const Events: React.FC = () => {
         };
 
         // 1. Calculate Event Points (Sports & Cultural)
-        if (Array.isArray(events)) {
-            events.forEach(event => {
-                if (!event || !Array.isArray(event.studentRoles)) return;
-                // Skip Inter-School events for House Points if strictly internal? 
-                // Usually Inter-School winners get huge points for their house too. Let's include them.
-                event.studentRoles.forEach(role => {
-                    if (!role) return;
-                    // Find house either from role (snapshot) or student (live)
-                    let house = role.house;
-                    if (!house && Array.isArray(students)) {
-                        const s = Array.isArray(students) ? students.find(stu => stu && stu.id === role.studentId) : undefined;
-                        if (s) house = s.house;
-                    }
+        events.forEach(event => {
+            // Skip Inter-School events for House Points if strictly internal? 
+            // Usually Inter-School winners get huge points for their house too. Let's include them.
+            event.studentRoles.forEach(role => {
+                // Find house either from role (snapshot) or student (live)
+                let house = role.house;
+                if (!house) {
+                    const s = students.find(stu => stu.id === role.studentId);
+                    if (s) house = s.house;
+                }
 
-                    if (!house || !stats[house]) return;
+                if (!house || !stats[house]) return;
 
-                    let points = 0;
-                    const ach = role.achievement || '';
-                    const multiplier = event.type === 'Inter-School' ? 2 : 1; // Double points for Inter-School wins? (Optional rule, keeping 1 for now)
+                let points = 0;
+                const ach = role.achievement || '';
+                const multiplier = event.type === 'Inter-School' ? 2 : 1; // Double points for Inter-School wins? (Optional rule, keeping 1 for now)
 
-                    if (ach.includes('Winner') || ach.includes('1st')) points = 10;
-                    else if (ach.includes('Runner') || ach.includes('2nd')) points = 7;
-                    else if (ach.includes('Third') || ach.includes('3rd')) points = 5;
-                    else if (role.role === 'Participant') points = 2; // Changed from 1 to 2
+                if (ach.includes('Winner') || ach.includes('1st')) points = 10;
+                else if (ach.includes('Runner') || ach.includes('2nd')) points = 7;
+                else if (ach.includes('Third') || ach.includes('3rd')) points = 5;
+                else if (role.role === 'Participant') points = 1;
 
-                    if (event.category === 'Sports') {
-                        stats[house].sports += points;
-                    } else {
-                        stats[house].cultural += points;
-                    }
-                });
+                if (event.category === 'Sports') {
+                    stats[house].sports += points;
+                } else {
+                    stats[house].cultural += points;
+                }
             });
-        }
+        });
 
         // 2. Calculate Discipline Points (Negative Scoring from Cards)
-        if (Array.isArray(students)) {
-            students.forEach(s => {
-                if (!s || !s.house || !stats[s.house]) return;
+        students.forEach(s => {
+            if (!s.house || !stats[s.house]) return;
 
-                const penalties = Array.isArray(s.disciplinaryActions)
-                    ? s.disciplinaryActions.reduce((acc, action) => acc + (action?.penaltyPoints || 0), 0)
-                    : 0;
-                stats[s.house].discipline += penalties; // penalties are negative
-            });
-        }
+            const penalties = s.disciplinaryActions?.reduce((acc, action) => acc + action.penaltyPoints, 0) || 0;
+            stats[s.house].discipline += penalties; // penalties are negative
+        });
 
         // 3. Compute Totals
         Object.keys(stats).forEach(h => {
@@ -126,13 +118,10 @@ const Events: React.FC = () => {
     // Group Classes by Grade for Selection Matrix
     const classesByGrade = useMemo(() => {
         const groups: Record<string, { id: string, section: string }[]> = {};
-        if (Array.isArray(classes)) {
-            classes.forEach(c => {
-                if (!c || !c.grade) return;
-                if (!groups[c.grade]) groups[c.grade] = [];
-                groups[c.grade].push({ id: c.id, section: c.section });
-            });
-        }
+        classes.forEach(c => {
+            if (!groups[c.grade]) groups[c.grade] = [];
+            groups[c.grade].push({ id: c.id, section: c.section });
+        });
         // Sort grades roughly
         return Object.entries(groups).sort((a, b) => {
             const numA = parseInt(a[0]);
@@ -146,18 +135,17 @@ const Events: React.FC = () => {
     // Target Selection Helpers
     const toggleClass = (id: string) => {
         setTargetClassIds(prev =>
-            Array.isArray(prev) && prev.includes(id) ? prev.filter(c => c !== id) : [...(Array.isArray(prev) ? prev : []), id]
+            prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
         );
     };
 
     const toggleGrade = (gradeClasses: { id: string }[]) => {
-        if (!Array.isArray(gradeClasses) || !Array.isArray(targetClassIds)) return;
-        const ids = gradeClasses.map(c => c ? c.id : '').filter(id => id);
-        const allSelected = ids.length > 0 && Array.isArray(targetClassIds) && ids.every(id => targetClassIds.includes(id));
+        const ids = gradeClasses.map(c => c.id);
+        const allSelected = ids.every(id => targetClassIds.includes(id));
 
         if (allSelected) {
             // Deselect all
-            setTargetClassIds(prev => Array.isArray(prev) ? prev.filter(id => !ids.includes(id)) : []);
+            setTargetClassIds(prev => prev.filter(id => !ids.includes(id)));
         } else {
             // Select all (union)
             setTargetClassIds(prev => [...new Set([...prev, ...ids])]);
@@ -174,7 +162,7 @@ const Events: React.FC = () => {
     const handleCreate = () => {
         if (!name || !date || !headTeacherId) return;
 
-        const selectedTeacher = Array.isArray(teachers) ? teachers.find(t => t && t.id === headTeacherId) : undefined;
+        const selectedTeacher = teachers.find(t => t.id === headTeacherId);
 
         const event: SchoolEvent = {
             id: `e${Date.now()}`,
@@ -183,14 +171,15 @@ const Events: React.FC = () => {
             type: eventType,
             date: date,
             venue: venue || (eventType === 'Inter-School' ? 'External School' : 'School Campus'),
-            description: description || `${name || 'Event'} (${eventType || 'School'}) organized under the ${category || 'General'} department.`,
+            description: description || `${name} (${eventType}) organized under the ${category} department.`,
             status: 'Upcoming',
             headTeacherId: headTeacherId,
             headTeacherName: selectedTeacher ? selectedTeacher.name : 'Unknown',
             targetClassIds: targetClassIds,
             staffRoles: [],
             studentRoles: [],
-            volunteers: []
+            notes: [], // NEW: Initialize empty notes array
+            hoursSpent: 4 // NEW: Default hours for activity sync
         };
         addEvent(event);
         setShowCreateModal(false);
@@ -263,41 +252,19 @@ const Events: React.FC = () => {
                     to={`/events/${event.id}`}
                     className="p-4 bg-gray-50 border-t border-gray-100 text-school-600 text-sm font-semibold flex items-center justify-between hover:bg-school-50 transition-colors"
                 >
-                    {isAdmin ? 'Manage Activity' : 'View Details'} <ChevronRight size={16} />
+                    {isAdmin ? 'Manage Event' : 'View Details'} <ChevronRight size={16} />
                 </Link>
             </div>
         );
     };
 
     // --- FILTERED LISTS FOR STUDENT VIEW ---
-    // Events where student can apply (not yet volunteered or selected)
-    const studentUpcomingEvents = isStudent && studentProfile && Array.isArray(events)
-        ? events.filter(e => 
-            e && 
-            e.status !== 'Completed' && 
-            Array.isArray(e.targetClassIds) && 
-            e.targetClassIds.includes(studentProfile.classId || '') &&
-            Array.isArray(e.studentRoles) &&
-            !e.studentRoles.some(r => r && r.studentId === studentProfile.id) &&
-            Array.isArray(e.volunteers) &&
-            !e.volunteers.some(v => v && v.studentId === studentProfile.id)
-        )
+    const studentUpcomingEvents = isStudent && studentProfile
+        ? events.filter(e => e.status !== 'Completed' && e.targetClassIds.includes(studentProfile.classId || ''))
         : [];
 
-    // Events where student has applied (volunteered) but not yet selected
-    const studentAppliedEvents = isStudent && studentProfile && Array.isArray(events)
-        ? events.filter(e =>
-            e &&
-            e.status !== 'Completed' &&
-            Array.isArray(e.volunteers) &&
-            e.volunteers.some(v => v && v.studentId === studentProfile.id) &&
-            Array.isArray(e.studentRoles) &&
-            !e.studentRoles.some(r => r && r.studentId === studentProfile.id)
-        )
-        : [];
-
-    const studentPastEvents = isStudent && studentProfile && Array.isArray(events)
-        ? events.filter(e => e && e.status === 'Completed' && Array.isArray(e.studentRoles) && e.studentRoles.some(r => r && r.studentId === studentProfile.id))
+    const studentPastEvents = isStudent && studentProfile
+        ? events.filter(e => e.status === 'Completed' && e.studentRoles.some(r => r.studentId === studentProfile.id))
         : [];
 
     return (
@@ -342,8 +309,7 @@ const Events: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {Array.isArray(houseStats) && houseStats.map(([house, scores], idx) => {
-                                if (!house || !scores) return null;
+                            {houseStats.map(([house, scores], idx) => {
                                 let rankColor = 'bg-gray-100 text-gray-600';
                                 if (idx === 0) rankColor = 'bg-yellow-100 text-yellow-700';
                                 if (idx === 1) rankColor = 'bg-gray-200 text-gray-700';
@@ -403,7 +369,7 @@ const Events: React.FC = () => {
                         </h3>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {studentUpcomingEvents.length > 0 ? (
-                                Array.isArray(studentUpcomingEvents) ? studentUpcomingEvents.map(renderEventCard) : null
+                                studentUpcomingEvents.map(renderEventCard)
                             ) : (
                                 <div className="col-span-3 text-center py-8 bg-white rounded-xl border border-dashed border-gray-200 text-gray-400">
                                     <p>No upcoming events targeted for your class at the moment.</p>
@@ -411,46 +377,6 @@ const Events: React.FC = () => {
                             )}
                         </div>
                     </div>
-
-                    {/* Applied For Section */}
-                    {studentAppliedEvents.length > 0 && (
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                <CheckCircle size={20} className="text-blue-500" /> Applied For
-                            </h3>
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {Array.isArray(studentAppliedEvents) ? studentAppliedEvents.map(event => (
-                                    <div key={event.id} className="bg-white rounded-xl shadow-sm border-2 border-blue-200 hover:shadow-md transition-shadow overflow-hidden flex flex-col group h-full">
-                                        <div className="h-2 w-full bg-blue-500"></div>
-                                        <div className="p-6 flex-1 flex flex-col">
-                                            <div className="flex justify-between items-start mb-3">
-                                                <span className="text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wide bg-blue-100 text-blue-700">
-                                                    Applied for
-                                                </span>
-                                            </div>
-                                            <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-                                                {event.name}
-                                            </h3>
-                                            <p className="text-xs font-semibold text-gray-400 uppercase mb-4">{event.category}</p>
-                                            <div className="space-y-2 text-sm text-gray-600 mt-auto">
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar size={16} className="text-school-400" />
-                                                    {event.date}
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <MapPin size={16} className="text-school-400" />
-                                                    {event.venue}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="p-4 bg-blue-50 border-t border-blue-100 text-blue-600 text-sm font-semibold flex items-center justify-center">
-                                            Waiting for Selection
-                                        </div>
-                                    </div>
-                                )) : null}
-                            </div>
-                        </div>
-                    )}
 
                     {/* Separator */}
                     <div className="relative">
@@ -468,7 +394,7 @@ const Events: React.FC = () => {
                     <div>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {studentPastEvents.length > 0 ? (
-                                Array.isArray(studentPastEvents) ? studentPastEvents.map(renderEventCard) : null
+                                studentPastEvents.map(renderEventCard)
                             ) : (
                                 <div className="col-span-3 text-center py-8 bg-gray-100 rounded-xl border border-transparent text-gray-400">
                                     <p>You haven't participated in any events yet.</p>
@@ -480,7 +406,7 @@ const Events: React.FC = () => {
             ) : (
                 /* 2. ADMIN / TEACHER VIEW (ALL EVENTS) */
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-                    {!Array.isArray(events) || events.length === 0 ? (
+                    {events.length === 0 ? (
                         <div className="col-span-3 text-center py-10 text-gray-400 italic">No events declared yet.</div>
                     ) : (
                         events.map(renderEventCard)
@@ -557,7 +483,7 @@ const Events: React.FC = () => {
                                     </div>
                                     {/* Suggestions Chips */}
                                     <div className="flex flex-wrap gap-2 mt-2">
-                                        {EVENT_CATEGORIES[category]?.types && Array.isArray(EVENT_CATEGORIES[category].types) && EVENT_CATEGORIES[category].types.map(type => (
+                                        {EVENT_CATEGORIES[category].types.map(type => (
                                             <button
                                                 key={type}
                                                 onClick={() => setName(type)}
@@ -605,9 +531,8 @@ const Events: React.FC = () => {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
-                                            {Array.isArray(classesByGrade) && classesByGrade.map(([grade, clsList]) => {
-                                                if (!grade || !Array.isArray(clsList)) return null;
-                                                const allSelected = clsList.every(c => c && Array.isArray(targetClassIds) && targetClassIds.includes(c.id));
+                                            {classesByGrade.map(([grade, clsList]) => {
+                                                const allSelected = clsList.every(c => targetClassIds.includes(c.id));
                                                 return (
                                                     <tr key={grade} className="hover:bg-gray-50">
                                                         <td className="px-4 py-2 font-bold text-gray-700">Class {grade}</td>
@@ -621,22 +546,20 @@ const Events: React.FC = () => {
                                                         </td>
                                                         <td className="px-4 py-2">
                                                             <div className="flex gap-3">
-                                                                {Array.isArray(clsList) ? clsList.map(c => (
-                                                                    c ? (
-                                                                        <label key={c.id} className="flex items-center gap-2 cursor-pointer select-none">
-                                                                            <div className="relative flex items-center">
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded bg-white checked:bg-school-600 checked:border-school-600 focus:ring-2 focus:ring-school-500 focus:ring-offset-1 transition-colors cursor-pointer"
-                                                                                    checked={Array.isArray(targetClassIds) && targetClassIds.includes(c.id)}
-                                                                                    onChange={() => toggleClass(c.id)}
-                                                                                />
-                                                                                <Check size={14} className="absolute left-0.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
-                                                                            </div>
-                                                                            <span className="text-sm text-gray-700 font-medium">{c.section}</span>
-                                                                        </label>
-                                                                    ) : null
-                                                                )) : null}
+                                                                {clsList.map(c => (
+                                                                    <label key={c.id} className="flex items-center gap-2 cursor-pointer select-none">
+                                                                        <div className="relative flex items-center">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded bg-white checked:bg-school-600 checked:border-school-600 focus:ring-2 focus:ring-school-500 focus:ring-offset-1 transition-colors cursor-pointer"
+                                                                                checked={targetClassIds.includes(c.id)}
+                                                                                onChange={() => toggleClass(c.id)}
+                                                                            />
+                                                                            <Check size={14} className="absolute left-0.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                                                                        </div>
+                                                                        <span className="text-sm text-gray-700 font-medium">{c.section}</span>
+                                                                    </label>
+                                                                ))}
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -658,13 +581,11 @@ const Events: React.FC = () => {
                                     onChange={(e) => setHeadTeacherId(e.target.value)}
                                 >
                                     <option value="">-- Select Staff Member --</option>
-                                    {Array.isArray(teachers) ? teachers.map(t => (
-                                        t ? (
-                                            <option key={t.id} value={t.id}>
-                                                {t.name} ({t.mainSubject})
-                                            </option>
-                                        ) : null
-                                    )) : null}
+                                    {teachers.map(t => (
+                                        <option key={t.id} value={t.id}>
+                                            {t.name} ({t.mainSubject})
+                                        </option>
+                                    ))}
                                 </select>
                                 <p className="text-xs text-school-600 mt-1">
                                     This teacher will lead the event and can assign further duties.

@@ -4,16 +4,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Trophy, AlertTriangle, Sparkles, BrainCircuit, Edit2, Save, FileText, TrendingUp, Calendar, Clock, X, Check, Phone, User, Bell, Globe, Info, Flag } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 import { analyzeStudentFactors } from '../services/geminiService';
-import { useToast } from './Toast';
-import { ExamEntry, Student, SchoolEvent, EventStudentRole, EventVolunteer, DisciplinaryAction } from '../types';
+import { ExamEntry, Student, SchoolEvent, EventStudentRole, DisciplinaryAction } from '../types';
 
 const StudentProfile: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { students, classes, updateStudentClass, classSessions, examSchedules, admissionSchema, updateStudent, events, updateEvent, currentUser, issuePenaltyCard } = useSchool();
-    const toast = useToast();
 
-    const [student, setStudent] = useState<Student | undefined>(Array.isArray(students) ? students.find(s => s && s.id === id) : undefined);
+    const [student, setStudent] = useState(students.find(s => s.id === id));
     const [activeTab, setActiveTab] = useState<'overview' | 'academics' | 'factors'>('overview');
     const [aiAnalysis, setAiAnalysis] = useState<string>('');
     const [loading, setLoading] = useState(false);
@@ -34,15 +32,14 @@ const StudentProfile: React.FC = () => {
     // Permissions Check
     const canEdit = currentUser?.role === 'Admin';
     const canRunAnalysis = currentUser?.role === 'Admin' || currentUser?.role === 'Teacher';
-    // Students can always apply to events (no need for canApplyToEvent check)
+    const canApplyToEvent = currentUser?.role === 'Admin' || currentUser?.role === 'Teacher';
     const canIssuePenalty = currentUser?.role === 'Admin' || currentUser?.role === 'Teacher';
 
     // Update local student object when context changes
     useEffect(() => {
-        const foundStudent = Array.isArray(students) ? students.find(s => s && s.id === id) : undefined;
-        setStudent(foundStudent || undefined);
-        if (foundStudent) {
-            setSelectedClassId(foundStudent.classId || '');
+        setStudent(students.find(s => s.id === id));
+        if (students.find(s => s.id === id)) {
+            setSelectedClassId(students.find(s => s.id === id)!.classId || '');
         }
     }, [students, id]);
 
@@ -58,7 +55,7 @@ const StudentProfile: React.FC = () => {
                 motherName: student.motherName || '',
                 contactNo: student.contactNo,
                 address: student.address || '',
-                ...(student.customDetails && typeof student.customDetails === 'object' ? student.customDetails : {})
+                ...student.customDetails
             };
             setEditFormData(initialData);
         }
@@ -76,91 +73,64 @@ const StudentProfile: React.FC = () => {
         }
 
         // Email check
-        if (info && info.includes('@')) {
+        if (info.includes('@')) {
             const parts = info.split('@');
-            if (parts.length >= 2) {
-                const name = parts[0] || '';
-                const domain = parts[1] || '';
-                if (name.length <= 3) return `${name}***@${domain}`;
-                return `${name.slice(0, 2)}****${name.slice(-1)}@${domain}`;
-            }
+            const name = parts[0];
+            if (name.length <= 3) return `${name}***@${parts[1]}`;
+            return `${name.slice(0, 2)}****${name.slice(-1)}@${parts[1]}`;
         }
         // Phone check
-        if (info) {
-            const clean = info.replace(/\D/g, '');
-            if (clean.length >= 10) {
-                return `${clean.slice(0, 2)}xxxx${clean.slice(-4)}`;
-            }
+        const clean = info.replace(/\D/g, '');
+        if (clean.length >= 10) {
+            return `${clean.slice(0, 2)}xxxx${clean.slice(-4)}`;
         }
-        return info || '';
+        return info;
     };
 
     // Find sessions where this specific student was marked absent
-    const missedSessions = Array.isArray(classSessions)
-        ? classSessions.filter(s => s && Array.isArray(s.absentStudentIds) && s.absentStudentIds.includes(student.id))
-        : [];
+    const missedSessions = classSessions.filter(s => s.absentStudentIds.includes(student.id));
 
     // Find Upcoming Exams
     const today = new Date().toISOString().split('T')[0];
     let upcomingExams: { scheduleName: string, entry: ExamEntry }[] = [];
 
-    if (student.classId && Array.isArray(examSchedules)) {
+    if (student.classId) {
         examSchedules.forEach(schedule => {
-            if (schedule && Array.isArray(schedule.entries)) {
-                const relevantEntries = schedule.entries.filter(e =>
-                    e && e.classId === student.classId &&
-                    e.date >= today
-                );
-                relevantEntries.forEach(entry => {
-                    if (entry) {
-                        upcomingExams.push({ scheduleName: schedule.title || 'Exam', entry });
-                    }
-                });
-            }
+            const relevantEntries = schedule.entries.filter(e =>
+                e.classId === student.classId &&
+                e.date >= today
+            );
+            relevantEntries.forEach(entry => {
+                upcomingExams.push({ scheduleName: schedule.title, entry });
+            });
         });
     }
     // Sort by date
-    if (Array.isArray(upcomingExams)) {
-        upcomingExams.sort((a, b) => {
-            const dateA = a?.entry?.date ? new Date(a.entry.date).getTime() : 0;
-            const dateB = b?.entry?.date ? new Date(b.entry.date).getTime() : 0;
-            return dateA - dateB;
-        });
-    }
+    upcomingExams.sort((a, b) => new Date(a.entry.date).getTime() - new Date(b.entry.date).getTime());
 
-    // Find Eligible Events (Notices) - Events where student can apply (not yet volunteered or selected)
-    const eligibleEvents = Array.isArray(events) ? events.filter(ev =>
-        ev && ev.targetClassIds &&
+    // Find Eligible Events (Notices)
+    const eligibleEvents = events.filter(ev =>
+        ev.targetClassIds &&
         student.classId &&
-        Array.isArray(ev.targetClassIds) &&
         ev.targetClassIds.includes(student.classId) &&
         ev.status === 'Upcoming' &&
-        Array.isArray(ev.studentRoles) &&
-        !ev.studentRoles.some(r => r && r.studentId === student.id) &&
-        Array.isArray(ev.volunteers) &&
-        !ev.volunteers.some(v => v && v.studentId === student.id)
-    ) : [];
-
-    // Events where student has applied (volunteered) but not yet selected
-    const appliedEvents = Array.isArray(events) ? events.filter(ev =>
-        ev && Array.isArray(ev.volunteers) &&
-        ev.volunteers.some(v => v && v.studentId === student.id) &&
-        Array.isArray(ev.studentRoles) &&
-        !ev.studentRoles.some(r => r && r.studentId === student.id)
-    ) : [];
+        !ev.studentRoles.some(r => r.studentId === student.id)
+    );
 
     const handleApplyToEvent = (event: SchoolEvent) => {
-        const newVolunteer: EventVolunteer = {
+        const newRole: EventStudentRole = {
             studentId: student.id,
             studentName: student.name,
-            appliedDate: new Date().toISOString().split('T')[0],
-            house: student.house
+            role: 'Participant',
+            status: 'volunteered', // NEW: Start as volunteer
+            specificDuty: 'Pending selection',
+            house: student.house, // Use real student house
+            appliedDate: new Date().toISOString().split('T')[0] // NEW: Track application date
         };
-        // Add to volunteers list (not participants yet)
-        const existingVolunteers = Array.isArray(event.volunteers) ? event.volunteers : [];
-        const updatedEvent = { ...event, volunteers: [...existingVolunteers, newVolunteer] };
+        // We need to update the event
+        const updatedEvent = { ...event, studentRoles: [...event.studentRoles, newRole] };
         updateEvent(updatedEvent);
-        toast.success(`Application submitted for ${event.name}! Status: Applied for.`);
+        alert(`Application submitted for ${event.name}! You have volunteered to participate. Selection pending.`);
     };
 
     const handleAiAnalysis = async () => {
@@ -179,87 +149,21 @@ const StudentProfile: React.FC = () => {
         setEditFormData(prev => ({ ...prev, [fieldId]: value }));
     };
 
-    // Validation helper functions
-    const validateContactNumber = (contact: string): boolean => {
-        if (!contact) return true; // Optional field
-        const cleaned = contact.replace(/\D/g, '');
-        return cleaned.length === 10;
-    };
-
-    const validateEmail = (email: string): boolean => {
-        if (!email) return true; // Optional field
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
-
-    const validateDate = (date: string): boolean => {
-        if (!date) return true; // Optional field
-        const dateObj = new Date(date);
-        return dateObj instanceof Date && !isNaN(dateObj.getTime());
-    };
-
     const handleSaveProfile = (e: React.FormEvent) => {
         e.preventDefault();
         if (!student) return;
 
-        // 1. Validate required fields
-        const missingRequiredFields: string[] = [];
-        admissionSchema.forEach(field => {
-            if (field.required) {
-                if (field.id === 'name' && (!editFormData['name'] || editFormData['name'].trim() === '')) {
-                    missingRequiredFields.push(field.label);
-                } else if (field.id === 'admissionNo' && (!editFormData['admissionNo'] || editFormData['admissionNo'].trim() === '')) {
-                    missingRequiredFields.push(field.label);
-                } else if (!field.isSystem && (!editFormData[field.id] || editFormData[field.id].trim() === '')) {
-                    missingRequiredFields.push(field.label);
-                }
-            }
-        });
-
-        if (missingRequiredFields.length > 0) {
-            toast.warning(`Please fill in all required fields: ${missingRequiredFields.join(', ')}`);
-            return;
-        }
-
-        // 2. Check for duplicate admission number (if changed)
-        const newAdmissionNo = editFormData['admissionNo'] || student.admissionNo;
-        if (newAdmissionNo !== student.admissionNo) {
-            if (students.some(s => s.id !== student.id && s.admissionNo === newAdmissionNo)) {
-                toast.error(`Admission number ${newAdmissionNo} already exists. Please use a different number.`);
-                return;
-            }
-        }
-
-        // 3. Validate contact number format
-        if (editFormData['contactNo'] && !validateContactNumber(editFormData['contactNo'])) {
-            toast.error("Contact number must be exactly 10 digits.");
-            return;
-        }
-
-        // 4. Validate email format (if email field exists)
-        const emailField = Array.isArray(admissionSchema) ? admissionSchema.find(f => f && (f.id === 'email' || (f.label && f.label.toLowerCase().includes('email')))) : undefined;
-        if (emailField && editFormData[emailField.id] && !validateEmail(editFormData[emailField.id])) {
-            toast.error("Please enter a valid email address.");
-            return;
-        }
-
-        // 5. Validate date fields
-        if (editFormData['dob'] && !validateDate(editFormData['dob'])) {
-            toast.error("Please enter a valid date of birth.");
-            return;
-        }
-
         const updatedStudent: Student = {
             ...student,
             name: editFormData['name'] || student.name,
-            admissionNo: newAdmissionNo,
+            admissionNo: editFormData['admissionNo'] || student.admissionNo,
             dob: editFormData['dob'],
             gender: editFormData['gender'],
             guardianName: editFormData['guardianName'],
             motherName: editFormData['motherName'],
             contactNo: editFormData['contactNo'],
             address: editFormData['address'],
-            customDetails: { ...(student.customDetails && typeof student.customDetails === 'object' ? student.customDetails : {}) }
+            customDetails: { ...student.customDetails }
         };
 
         // Populate custom details
@@ -271,7 +175,6 @@ const StudentProfile: React.FC = () => {
         });
 
         updateStudent(updatedStudent);
-        toast.success("Student profile updated successfully!");
         setShowEditModal(false);
     };
 
@@ -292,7 +195,6 @@ const StudentProfile: React.FC = () => {
         };
 
         issuePenaltyCard(student.id, action);
-        toast.success(`${penaltyType} card issued to ${student.name}`);
         setShowPenaltyModal(false);
         setPenaltyReason('');
         setPenaltyType('Yellow');
@@ -368,7 +270,7 @@ const StudentProfile: React.FC = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-school-100 flex items-center justify-center text-school-600 text-2xl font-bold">
-                        {student.name && student.name.length > 0 ? student.name.charAt(0) : '?'}
+                        {student.name.charAt(0)}
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{student.name}</h1>
@@ -381,7 +283,7 @@ const StudentProfile: React.FC = () => {
                                         onChange={(e) => setSelectedClassId(e.target.value)}
                                     >
                                         <option value="">Unassigned</option>
-                                        {Array.isArray(classes) ? classes.map(c => c ? <option key={c.id} value={c.id}>{c.name}</option> : null) : null}
+                                        {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                     <button onClick={handleSaveClass} className="text-green-600 hover:text-green-800"><Save size={18} /></button>
                                 </div>
@@ -515,12 +417,14 @@ const StudentProfile: React.FC = () => {
                                             </div>
                                             <div className="flex justify-between items-center mt-1">
                                                 <p className="text-xs text-gray-500">{event.date}</p>
-                                                <button
-                                                    onClick={() => handleApplyToEvent(event)}
-                                                    className="text-xs bg-yellow-600 text-white px-2 py-1 rounded font-medium hover:bg-yellow-700"
-                                                >
-                                                    Apply to Participate
-                                                </button>
+                                                {canApplyToEvent && (
+                                                    <button
+                                                        onClick={() => handleApplyToEvent(event)}
+                                                        className="text-xs bg-yellow-600 text-white px-2 py-1 rounded font-medium hover:bg-yellow-700"
+                                                    >
+                                                        Apply
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))
@@ -559,22 +463,22 @@ const StudentProfile: React.FC = () => {
                                 Co-Curricular Activities
                             </h3>
                             <div className="space-y-3">
-                                {Array.isArray(student.activities) && student.activities.map(activity => (
+                                {student.activities?.map(activity => (
                                     <div key={activity.id} className="p-3 bg-purple-50 rounded-lg border border-purple-100 relative overflow-hidden">
                                         <div className="flex justify-between items-start relative z-10">
                                             <span className="font-semibold text-gray-800 flex items-center gap-2">
-                                                {activity.name || 'Activity'}
+                                                {activity.name}
                                                 {activity.type === 'Inter-School' && (
                                                     <span className="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide flex items-center gap-1">
                                                         <Globe size={8} /> External
                                                     </span>
                                                 )}
                                             </span>
-                                            <span className="text-xs text-purple-600 font-mono">{activity.date || 'N/A'}</span>
+                                            <span className="text-xs text-purple-600 font-mono">{activity.date}</span>
                                         </div>
                                         <div className="flex items-center gap-3 mt-1 relative z-10">
-                                            <span className="text-xs px-2 py-0.5 bg-white rounded border border-purple-100 text-purple-700">{activity.category || 'General'}</span>
-                                            <span className="text-sm text-gray-600">{activity.hoursSpent || 0} hrs spent</span>
+                                            <span className="text-xs px-2 py-0.5 bg-white rounded border border-purple-100 text-purple-700">{activity.category}</span>
+                                            <span className="text-sm text-gray-600">{activity.hoursSpent} hrs spent</span>
                                         </div>
                                         {activity.achievement && (
                                             <p className="text-xs text-green-600 mt-2 font-medium relative z-10">Achievement: {activity.achievement}</p>

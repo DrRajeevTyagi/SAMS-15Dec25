@@ -13,7 +13,7 @@ const HouseManager: React.FC = () => {
   
   // Identify if the user is a student
   const isStudent = currentUser?.role === 'Student';
-  const studentHouse = isStudent && Array.isArray(students) ? students.find(s => s && s.id === currentUser.id)?.house : null;
+  const studentHouse = isStudent ? students.find(s => s.id === currentUser.id)?.house : null;
 
   // Force student to view only their house
   useEffect(() => {
@@ -39,48 +39,39 @@ const HouseManager: React.FC = () => {
     };
 
     // 1. Calculate Event Points
-    if (Array.isArray(events)) {
-        events.forEach(event => {
-            if (event && Array.isArray(event.studentRoles)) {
-                event.studentRoles.forEach(role => {
-                    if (!role) return;
-                    let house = role.house;
-                    if (!house && Array.isArray(students)) {
-                        const s = Array.isArray(students) ? students.find(stu => stu && stu.id === role.studentId) : undefined;
-                        if (s) house = s.house;
-                    }
+    events.forEach(event => {
+        event.studentRoles.forEach(role => {
+            let house = role.house;
+            if (!house) {
+                const s = students.find(stu => stu.id === role.studentId);
+                if (s) house = s.house;
+            }
 
-                    if (!house || !stats[house]) return;
+            if (!house || !stats[house]) return;
 
-                    let points = 0;
-                    const ach = role.achievement || '';
+            let points = 0;
+            const ach = role.achievement || '';
 
-                    if (ach.includes('Winner') || ach.includes('1st')) points = 10;
-                    else if (ach.includes('Runner') || ach.includes('2nd')) points = 7;
-                    else if (ach.includes('Third') || ach.includes('3rd')) points = 5;
-                    else if (role.role === 'Participant') points = 2; // Changed from 1 to 2
+            if (ach.includes('Winner') || ach.includes('1st')) points = 10;
+            else if (ach.includes('Runner') || ach.includes('2nd')) points = 7;
+            else if (ach.includes('Third') || ach.includes('3rd')) points = 5;
+            else if (role.role === 'Participant') points = 1;
 
-                    if (event.category === 'Sports') {
-                        stats[house].sports += points;
-                    } else {
-                        stats[house].cultural += points;
-                    }
-                });
+            if (event.category === 'Sports') {
+                stats[house].sports += points;
+            } else {
+                stats[house].cultural += points;
             }
         });
-    }
+    });
 
     // 2. Calculate Discipline Points (From Manual Cards)
-    if (Array.isArray(students)) {
-        students.forEach(s => {
-            if (!s || !s.house || !stats[s.house]) return;
-            
-            const penalties = Array.isArray(s.disciplinaryActions) 
-                ? s.disciplinaryActions.reduce((acc, action) => acc + (action?.penaltyPoints || 0), 0) 
-                : 0;
-            stats[s.house].discipline += penalties; // penalties are negative numbers
-        });
-    }
+    students.forEach(s => {
+        if (!s.house || !stats[s.house]) return;
+        
+        const penalties = s.disciplinaryActions?.reduce((acc, action) => acc + action.penaltyPoints, 0) || 0;
+        stats[s.house].discipline += penalties; // penalties are negative numbers
+    });
     
     // 3. Compute Totals
     Object.keys(stats).forEach(h => {
@@ -95,36 +86,30 @@ const HouseManager: React.FC = () => {
       let sports = 0;
       let cultural = 0;
       
-      if (Array.isArray(events)) {
-          events.forEach(ev => {
-              if (ev && Array.isArray(ev.studentRoles)) {
-                  const role = Array.isArray(ev.studentRoles) ? ev.studentRoles.find(r => r && r.studentId === studentId) : undefined;
-                  if (role) {
-                      let p = 1; // Participation Base
-                      const ach = role.achievement || '';
-                      if (ach.includes('Winner') || ach.includes('1st')) p = 10;
-                      else if (ach.includes('Runner') || ach.includes('2nd')) p = 7;
-                      else if (ach.includes('Third') || ach.includes('3rd')) p = 5;
+      events.forEach(ev => {
+          const role = ev.studentRoles.find(r => r.studentId === studentId);
+          if (role) {
+              let p = 1; // Participation Base
+              const ach = role.achievement || '';
+              if (ach.includes('Winner') || ach.includes('1st')) p = 10;
+              else if (ach.includes('Runner') || ach.includes('2nd')) p = 7;
+              else if (ach.includes('Third') || ach.includes('3rd')) p = 5;
 
-                      if (ev.category === 'Sports') sports += p;
-                      else cultural += p;
-                  }
-              }
-          });
-      }
+              if (ev.category === 'Sports') sports += p;
+              else cultural += p;
+          }
+      });
 
-      const s = Array.isArray(students) ? students.find(stu => stu && stu.id === studentId) : undefined;
-      const discipline = s?.disciplinaryActions && Array.isArray(s.disciplinaryActions) 
-          ? s.disciplinaryActions.reduce((acc, a) => acc + (a?.penaltyPoints || 0), 0) 
-          : 0;
+      const s = students.find(stu => stu.id === studentId);
+      const discipline = s?.disciplinaryActions?.reduce((acc, a) => acc + a.penaltyPoints, 0) || 0;
 
       return { sports, cultural, discipline, total: sports + cultural + discipline };
   };
 
   // Filter Data for Active House
-  const houseTeachers = Array.isArray(teachers) ? teachers.filter(t => t && t.house === activeHouse) : [];
-  const houseMaster = houseTeachers.find(t => t && t.isHouseMaster);
-  const houseMembers = houseTeachers.filter(t => t && !t.isHouseMaster);
+  const houseTeachers = teachers.filter(t => t.house === activeHouse);
+  const houseMaster = houseTeachers.find(t => t.isHouseMaster);
+  const houseMembers = houseTeachers.filter(t => !t.isHouseMaster);
   const currentStats = houseStats[activeHouse];
 
   // Sorting Students: Class 12 -> Nursery

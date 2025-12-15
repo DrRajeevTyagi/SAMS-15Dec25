@@ -4,7 +4,6 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar';
 import Login from './components/Login';
 import { SchoolProvider, useSchool } from './context/SchoolContext';
-import { ToastProvider } from './components/Toast';
 
 // Lazy Load Components to isolate failures
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
@@ -78,11 +77,9 @@ const AppRoutes: React.FC = () => {
 const App: React.FC = () => {
   return (
     <SchoolProvider>
-      <ToastProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </ToastProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
     </SchoolProvider>
   );
 };

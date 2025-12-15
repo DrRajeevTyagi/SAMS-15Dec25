@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { Database, Download, RefreshCw, AlertTriangle, CheckCircle, Server, ShieldAlert, FileText, Plus, Trash2, Upload, Code, Copy } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 import { AdmissionField, FieldType } from '../types';
-import { useToast } from './Toast';
 
 const Settings: React.FC = () => {
   const { students, classes, teachers, classSessions, resetData, admissionSchema, updateAdmissionSchema, loadData, examSchedules, events, messages, polls, notices } = useSchool();
-  const toast = useToast();
   const [backupStatus, setBackupStatus] = useState('');
   const [activeTab, setActiveTab] = useState<'data' | 'form'>('data');
 
@@ -61,10 +59,9 @@ const Settings: React.FC = () => {
     
     navigator.clipboard.writeText(textToCopy).then(() => {
         setBackupStatus('Copied to Clipboard! Paste this into src/data/staticData.ts');
-        toast.success('Data copied to clipboard! Paste into src/data/staticData.ts');
         setTimeout(() => setBackupStatus(''), 5000);
     }).catch(() => {
-        toast.error("Failed to copy. Please use the Download JSON option instead.");
+        alert("Failed to copy. Please use the Download JSON option instead.");
     });
   };
 
@@ -78,10 +75,9 @@ const Settings: React.FC = () => {
               const json = JSON.parse(event.target?.result as string);
               if (window.confirm("This will overwrite all current data with the imported file. Continue?")) {
                   loadData(json);
-                  toast.success("Data imported successfully!");
               }
           } catch (err) {
-              toast.error("Failed to parse JSON file. Please check the file format.");
+              alert("Failed to parse JSON file.");
           }
       };
       reader.readAsText(file);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Sparkles, FileText, Send, Copy, Check, BrainCircuit, Search } from 'lucide-react';
 import { generateSchoolNotice, analyzeStudentFactors } from '../services/geminiService';
 import { useSchool } from '../context/SchoolContext';
@@ -21,39 +21,14 @@ const AiTools: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Check if API key is configured
-  const [apiKeyStatus, setApiKeyStatus] = useState<'checking' | 'ok' | 'missing'>('checking');
-  
-  useEffect(() => {
-    // Check API key on component mount
-    try {
-      const apiKey = import.meta.env.VITE_API_KEY;
-      if (apiKey && apiKey.trim() !== '' && apiKey !== 'your_actual_api_key_here' && apiKey.length > 10) {
-        setApiKeyStatus('ok');
-      } else {
-        setApiKeyStatus('missing');
-      }
-    } catch (e) {
-      setApiKeyStatus('missing');
-    }
-  }, []);
-
   const handleGenerateNotice = async () => {
     if (!topic) return;
     setIsGenerating(true);
     setGeneratedNotice('');
+    const result = await generateSchoolNotice(topic, audience);
+    setGeneratedNotice(result);
+    setIsGenerating(false);
     setCopied(false);
-    
-    try {
-      const result = await generateSchoolNotice(topic, audience);
-      setGeneratedNotice(result);
-    } catch (error: any) {
-      // This should never happen due to our error handling, but just in case
-      console.error("Unexpected error:", error);
-      setGeneratedNotice("❌ An unexpected error occurred. Please try again.");
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   const handleCopy = () => {
@@ -63,30 +38,19 @@ const AiTools: React.FC = () => {
   };
 
   const handleRunAnalysis = async () => {
-      if (!selectedStudent || !selectedStudent.id) return;
+      if (!selectedStudent) return;
       setIsAnalyzing(true);
-      try {
-          // Get real data for this student with null safety
-          const missedSessions = Array.isArray(classSessions)
-              ? classSessions.filter(s => s && Array.isArray(s.absentStudentIds) && s.absentStudentIds.includes(selectedStudent.id))
-              : [];
-          const activities = Array.isArray(selectedStudent.activities) ? selectedStudent.activities : [];
-          
-          const result = await analyzeStudentFactors(selectedStudent, missedSessions, activities);
-          setAnalysisResult(result || "Analysis completed but returned no results.");
-      } catch (err) {
-          console.error("Error running analysis:", err);
-          setAnalysisResult("Error: Could not complete analysis. Please try again.");
-      } finally {
-          setIsAnalyzing(false);
-      }
+      // Get real data for this student
+      const missedSessions = classSessions.filter(s => s.absentStudentIds.includes(selectedStudent.id));
+      const activities = selectedStudent.activities || [];
+      
+      const result = await analyzeStudentFactors(selectedStudent, missedSessions, activities);
+      setAnalysisResult(result);
+      setIsAnalyzing(false);
   };
 
-  const filteredStudents = studentSearch && Array.isArray(students)
-    ? students.filter(s => s && (
-        (s.name && s.name.toLowerCase().includes(studentSearch.toLowerCase())) || 
-        (s.admissionNo && s.admissionNo.includes(studentSearch))
-    ))
+  const filteredStudents = studentSearch 
+    ? students.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()) || s.admissionNo.includes(studentSearch))
     : [];
 
   return (
@@ -98,31 +62,6 @@ const AiTools: React.FC = () => {
         </h2>
         <p className="text-gray-500 mt-2">Powered by Gemini. Draft notices, analyze results, and more.</p>
       </div>
-
-      {/* API Key Warning Banner */}
-      {apiKeyStatus === 'missing' && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-sm font-medium text-yellow-800">API Key Not Configured</h3>
-              <div className="mt-2 text-sm text-yellow-700">
-                <p>To use AI features, you need to set up your Google Gemini API key:</p>
-                <ol className="list-decimal list-inside mt-2 space-y-1">
-                  <li>Open the <code className="bg-yellow-100 px-1 rounded">.env</code> file in your project folder</li>
-                  <li>Add: <code className="bg-yellow-100 px-1 rounded">VITE_API_KEY=your_actual_key_here</code></li>
-                  <li>Replace with your real API key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline">Google AI Studio</a></li>
-                  <li>Save the file and restart the development server</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-h-[500px]">
         <div className="flex border-b border-gray-100">
@@ -213,11 +152,7 @@ const AiTools: React.FC = () => {
                     >
                         {copied ? <Check size={16} className="text-green-500"/> : <Copy size={16} />}
                     </button>
-                    <div className={`whitespace-pre-wrap text-sm font-serif leading-relaxed bg-white p-4 rounded border shadow-sm h-full ${
-                      generatedNotice.startsWith('❌') || generatedNotice.startsWith('⚠️') || generatedNotice.startsWith('🔑') || generatedNotice.startsWith('🌐') || generatedNotice.startsWith('⏱️') || generatedNotice.startsWith('⏰')
-                        ? 'text-red-800 border-red-200 bg-red-50' 
-                        : 'text-gray-800 border-gray-100'
-                    }`}>
+                    <div className="whitespace-pre-wrap text-sm text-gray-800 font-serif leading-relaxed bg-white p-4 rounded border border-gray-100 shadow-sm h-full">
                       {generatedNotice}
                     </div>
                   </>
@@ -302,7 +237,7 @@ const AiTools: React.FC = () => {
                                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                                     <p className="text-xs font-bold text-gray-500 uppercase">Recent Absences</p>
                                     <p className="text-2xl font-semibold text-gray-800">
-                                        {Array.isArray(classSessions) ? classSessions.filter(s => s && Array.isArray(s.absentStudentIds) && s.absentStudentIds.includes(selectedStudent.id)).length : 0}
+                                        {classSessions.filter(s => s.absentStudentIds.includes(selectedStudent.id)).length}
                                         <span className="text-xs font-normal text-gray-500 ml-1">sessions</span>
                                     </p>
                                 </div>
@@ -318,11 +253,7 @@ const AiTools: React.FC = () => {
                             {/* Result Area */}
                             <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200 p-6 overflow-y-auto">
                                 {analysisResult ? (
-                                    <div className={`prose prose-sm max-w-none whitespace-pre-wrap font-medium ${
-                                      analysisResult.startsWith('❌') || analysisResult.startsWith('⚠️') || analysisResult.startsWith('🔑') || analysisResult.startsWith('🌐') || analysisResult.startsWith('⏱️') || analysisResult.startsWith('⏰')
-                                        ? 'text-red-800' 
-                                        : 'text-gray-800'
-                                    }`}>
+                                    <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap font-medium">
                                         {analysisResult}
                                     </div>
                                 ) : (

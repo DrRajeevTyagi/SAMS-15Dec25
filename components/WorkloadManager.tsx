@@ -22,19 +22,17 @@ const WorkloadManager: React.FC = () => {
     });
   }, [classes]);
 
-  const [selectedClassId, setSelectedClassId] = useState<string | null>(Array.isArray(sortedClasses) && sortedClasses.length > 0 ? sortedClasses[0]?.id || null : null);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(sortedClasses[0]?.id || null);
 
   // Ensure default selection respects the sort order
   useEffect(() => {
-      if (!selectedClassId && Array.isArray(sortedClasses) && sortedClasses.length > 0 && sortedClasses[0]) {
+      if (!selectedClassId && sortedClasses.length > 0) {
           setSelectedClassId(sortedClasses[0].id);
       }
   }, [sortedClasses, selectedClassId]);
 
   const calculateTeacherLoad = (teacher: Teacher) => {
-    return Array.isArray(teacher.workload) 
-      ? teacher.workload.reduce((sum, item) => sum + (item?.periods || 0), 0)
-      : 0;
+    return teacher.workload.reduce((sum, item) => sum + item.periods, 0);
   };
 
   const handleAutoAllocation = () => {
@@ -43,7 +41,7 @@ const WorkloadManager: React.FC = () => {
     }
   };
 
-  const selectedClass = Array.isArray(sortedClasses) ? sortedClasses.find(c => c && c.id === selectedClassId) : undefined;
+  const selectedClass = sortedClasses.find(c => c.id === selectedClassId);
 
   return (
     // Fixed Height Container to allow internal scrolling
