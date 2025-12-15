@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Plus, Calendar, MapPin, ChevronRight, User, Palette, Microscope, Trophy, Music, BookOpen, Users as UsersIcon, Award, TrendingUp, CheckSquare, Square, AlertTriangle, Flame, Globe, Building2, Check, History, Sparkles } from 'lucide-react';
+import { Plus, Calendar, MapPin, ChevronRight, User, Palette, Microscope, Trophy, Music, BookOpen, Users as UsersIcon, Award, TrendingUp, CheckSquare, Square, AlertTriangle, Flame, Globe, Building2, Check, History, Sparkles, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SchoolEvent } from '../types';
 import { useSchool } from '../context/SchoolContext';
@@ -91,7 +91,7 @@ const Events: React.FC = () => {
                     if (ach.includes('Winner') || ach.includes('1st')) points = 10;
                     else if (ach.includes('Runner') || ach.includes('2nd')) points = 7;
                     else if (ach.includes('Third') || ach.includes('3rd')) points = 5;
-                    else if (role.role === 'Participant') points = 1;
+                    else if (role.role === 'Participant') points = 2; // Changed from 1 to 2
 
                     if (event.category === 'Sports') {
                         stats[house].sports += points;
@@ -189,7 +189,8 @@ const Events: React.FC = () => {
             headTeacherName: selectedTeacher ? selectedTeacher.name : 'Unknown',
             targetClassIds: targetClassIds,
             staffRoles: [],
-            studentRoles: []
+            studentRoles: [],
+            volunteers: []
         };
         addEvent(event);
         setShowCreateModal(false);
@@ -262,15 +263,37 @@ const Events: React.FC = () => {
                     to={`/events/${event.id}`}
                     className="p-4 bg-gray-50 border-t border-gray-100 text-school-600 text-sm font-semibold flex items-center justify-between hover:bg-school-50 transition-colors"
                 >
-                    {isStudent ? 'View Details' : 'Manage Activity'} <ChevronRight size={16} />
+                    {isAdmin ? 'Manage Activity' : 'View Details'} <ChevronRight size={16} />
                 </Link>
             </div>
         );
     };
 
     // --- FILTERED LISTS FOR STUDENT VIEW ---
+    // Events where student can apply (not yet volunteered or selected)
     const studentUpcomingEvents = isStudent && studentProfile && Array.isArray(events)
-        ? events.filter(e => e && e.status !== 'Completed' && Array.isArray(e.targetClassIds) && e.targetClassIds.includes(studentProfile.classId || ''))
+        ? events.filter(e => 
+            e && 
+            e.status !== 'Completed' && 
+            Array.isArray(e.targetClassIds) && 
+            e.targetClassIds.includes(studentProfile.classId || '') &&
+            Array.isArray(e.studentRoles) &&
+            !e.studentRoles.some(r => r && r.studentId === studentProfile.id) &&
+            Array.isArray(e.volunteers) &&
+            !e.volunteers.some(v => v && v.studentId === studentProfile.id)
+        )
+        : [];
+
+    // Events where student has applied (volunteered) but not yet selected
+    const studentAppliedEvents = isStudent && studentProfile && Array.isArray(events)
+        ? events.filter(e =>
+            e &&
+            e.status !== 'Completed' &&
+            Array.isArray(e.volunteers) &&
+            e.volunteers.some(v => v && v.studentId === studentProfile.id) &&
+            Array.isArray(e.studentRoles) &&
+            !e.studentRoles.some(r => r && r.studentId === studentProfile.id)
+        )
         : [];
 
     const studentPastEvents = isStudent && studentProfile && Array.isArray(events)
@@ -388,6 +411,46 @@ const Events: React.FC = () => {
                             )}
                         </div>
                     </div>
+
+                    {/* Applied For Section */}
+                    {studentAppliedEvents.length > 0 && (
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <CheckCircle size={20} className="text-blue-500" /> Applied For
+                            </h3>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {Array.isArray(studentAppliedEvents) ? studentAppliedEvents.map(event => (
+                                    <div key={event.id} className="bg-white rounded-xl shadow-sm border-2 border-blue-200 hover:shadow-md transition-shadow overflow-hidden flex flex-col group h-full">
+                                        <div className="h-2 w-full bg-blue-500"></div>
+                                        <div className="p-6 flex-1 flex flex-col">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <span className="text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wide bg-blue-100 text-blue-700">
+                                                    Applied for
+                                                </span>
+                                            </div>
+                                            <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+                                                {event.name}
+                                            </h3>
+                                            <p className="text-xs font-semibold text-gray-400 uppercase mb-4">{event.category}</p>
+                                            <div className="space-y-2 text-sm text-gray-600 mt-auto">
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar size={16} className="text-school-400" />
+                                                    {event.date}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin size={16} className="text-school-400" />
+                                                    {event.venue}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 bg-blue-50 border-t border-blue-100 text-blue-600 text-sm font-semibold flex items-center justify-center">
+                                            Waiting for Selection
+                                        </div>
+                                    </div>
+                                )) : null}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Separator */}
                     <div className="relative">

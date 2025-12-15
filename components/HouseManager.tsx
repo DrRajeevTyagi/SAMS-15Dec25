@@ -58,7 +58,7 @@ const HouseManager: React.FC = () => {
                     if (ach.includes('Winner') || ach.includes('1st')) points = 10;
                     else if (ach.includes('Runner') || ach.includes('2nd')) points = 7;
                     else if (ach.includes('Third') || ach.includes('3rd')) points = 5;
-                    else if (role.role === 'Participant') points = 1;
+                    else if (role.role === 'Participant') points = 2; // Changed from 1 to 2
 
                     if (event.category === 'Sports') {
                         stats[house].sports += points;

@@ -168,6 +168,7 @@ export interface EventStaffRole {
   teacherId: string;
   teacherName: string;
   role: string; // e.g., "Hospitality", "Scoring", "Discipline"
+  notes?: string; // Appreciation, remarks, or comments from team members
 }
 
 export interface EventStudentRole {
@@ -177,6 +178,14 @@ export interface EventStudentRole {
   specificDuty?: string; // e.g., "Stage Decoration" or "Debate Team A"
   house?: string;
   achievement?: string; // e.g., "1st Position"
+  notes?: string; // Appreciation, remarks, or comments from team members
+}
+
+export interface EventVolunteer {
+  studentId: string;
+  studentName: string;
+  appliedDate: string; // When they applied
+  house?: string;
 }
 
 export interface SchoolEvent {
@@ -193,6 +202,7 @@ export interface SchoolEvent {
   targetClassIds: string[]; // IDs of classes eligible for this event (e.g. ['c_10_A', 'c_10_B'])
   staffRoles: EventStaffRole[];
   studentRoles: EventStudentRole[];
+  volunteers: EventVolunteer[]; // Students who applied but not yet selected
   galleryImages?: string[]; // placeholder for image URLs
 }
 

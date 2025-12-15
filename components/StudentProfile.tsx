@@ -5,7 +5,7 @@ import { ArrowLeft, BookOpen, Trophy, AlertTriangle, Sparkles, BrainCircuit, Edi
 import { useSchool } from '../context/SchoolContext';
 import { analyzeStudentFactors } from '../services/geminiService';
 import { useToast } from './Toast';
-import { ExamEntry, Student, SchoolEvent, EventStudentRole, DisciplinaryAction } from '../types';
+import { ExamEntry, Student, SchoolEvent, EventStudentRole, EventVolunteer, DisciplinaryAction } from '../types';
 
 const StudentProfile: React.FC = () => {
     const { id } = useParams();
@@ -34,7 +34,7 @@ const StudentProfile: React.FC = () => {
     // Permissions Check
     const canEdit = currentUser?.role === 'Admin';
     const canRunAnalysis = currentUser?.role === 'Admin' || currentUser?.role === 'Teacher';
-    const canApplyToEvent = currentUser?.role === 'Admin' || currentUser?.role === 'Teacher';
+    // Students can always apply to events (no need for canApplyToEvent check)
     const canIssuePenalty = currentUser?.role === 'Admin' || currentUser?.role === 'Teacher';
 
     // Update local student object when context changes
@@ -128,30 +128,39 @@ const StudentProfile: React.FC = () => {
         });
     }
 
-    // Find Eligible Events (Notices)
+    // Find Eligible Events (Notices) - Events where student can apply (not yet volunteered or selected)
     const eligibleEvents = Array.isArray(events) ? events.filter(ev =>
         ev && ev.targetClassIds &&
         student.classId &&
         Array.isArray(ev.targetClassIds) &&
-        Array.isArray(ev.targetClassIds) && ev.targetClassIds.includes(student.classId) &&
+        ev.targetClassIds.includes(student.classId) &&
         ev.status === 'Upcoming' &&
+        Array.isArray(ev.studentRoles) &&
+        !ev.studentRoles.some(r => r && r.studentId === student.id) &&
+        Array.isArray(ev.volunteers) &&
+        !ev.volunteers.some(v => v && v.studentId === student.id)
+    ) : [];
+
+    // Events where student has applied (volunteered) but not yet selected
+    const appliedEvents = Array.isArray(events) ? events.filter(ev =>
+        ev && Array.isArray(ev.volunteers) &&
+        ev.volunteers.some(v => v && v.studentId === student.id) &&
         Array.isArray(ev.studentRoles) &&
         !ev.studentRoles.some(r => r && r.studentId === student.id)
     ) : [];
 
     const handleApplyToEvent = (event: SchoolEvent) => {
-        const newRole: EventStudentRole = {
+        const newVolunteer: EventVolunteer = {
             studentId: student.id,
             studentName: student.name,
-            role: 'Participant',
-            specificDuty: 'Participant', // Default
-            house: student.house // Use real student house
+            appliedDate: new Date().toISOString().split('T')[0],
+            house: student.house
         };
-        // We need to update the event
-        const existingRoles = Array.isArray(event.studentRoles) ? event.studentRoles : [];
-        const updatedEvent = { ...event, studentRoles: [...existingRoles, newRole] };
+        // Add to volunteers list (not participants yet)
+        const existingVolunteers = Array.isArray(event.volunteers) ? event.volunteers : [];
+        const updatedEvent = { ...event, volunteers: [...existingVolunteers, newVolunteer] };
         updateEvent(updatedEvent);
-        toast.success(`Application submitted for ${event.name}! Status: Participant.`);
+        toast.success(`Application submitted for ${event.name}! Status: Applied for.`);
     };
 
     const handleAiAnalysis = async () => {
@@ -506,14 +515,12 @@ const StudentProfile: React.FC = () => {
                                             </div>
                                             <div className="flex justify-between items-center mt-1">
                                                 <p className="text-xs text-gray-500">{event.date}</p>
-                                                {canApplyToEvent && (
-                                                    <button
-                                                        onClick={() => handleApplyToEvent(event)}
-                                                        className="text-xs bg-yellow-600 text-white px-2 py-1 rounded font-medium hover:bg-yellow-700"
-                                                    >
-                                                        Apply
-                                                    </button>
-                                                )}
+                                                <button
+                                                    onClick={() => handleApplyToEvent(event)}
+                                                    className="text-xs bg-yellow-600 text-white px-2 py-1 rounded font-medium hover:bg-yellow-700"
+                                                >
+                                                    Apply to Participate
+                                                </button>
                                             </div>
                                         </div>
                                     ))

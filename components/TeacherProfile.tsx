@@ -157,7 +157,7 @@ const TeacherProfile: React.FC = () => {
                 <div className="space-y-4">
                      {myEvents.length > 0 ? myEvents.map(event => (
                          <div key={event.id} className="p-4 border border-gray-200 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/30 hover:bg-white hover:shadow-sm transition-all">
-                             <div>
+                             <div className="flex-1">
                                  <div className="flex items-center gap-2 mb-1">
                                      <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${
                                          event.headTeacherId === teacher.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
@@ -176,14 +176,21 @@ const TeacherProfile: React.FC = () => {
                                      <span className="text-gray-300">|</span> 
                                      {event.venue}
                                  </p>
+                                 {/* If staff role, show specific duty */}
+                                 {event.headTeacherId !== teacher.id && (
+                                     <p className="text-xs text-gray-500 mt-1">
+                                         Role: <strong>{Array.isArray(event.staffRoles) ? event.staffRoles.find(r => r && r.teacherId === teacher.id)?.role : 'N/A'}</strong>
+                                     </p>
+                                 )}
                              </div>
                              
-                             {/* If staff role, show specific duty */}
-                             {event.headTeacherId !== teacher.id && (
-                                 <div className="bg-white border border-gray-200 px-3 py-2 rounded text-sm text-gray-600">
-                                     Role: <strong>{Array.isArray(event.staffRoles) ? event.staffRoles.find(r => r && r.teacherId === teacher.id)?.role : 'N/A'}</strong>
-                                 </div>
-                             )}
+                             {/* Manage Event Button */}
+                             <Link
+                                 to={`/events/${event.id}`}
+                                 className="px-4 py-2 bg-school-600 text-white rounded-lg text-sm font-medium hover:bg-school-700 flex items-center gap-2 shadow-sm"
+                             >
+                                 Manage Event
+                             </Link>
                          </div>
                      )) : (
                         <div className="text-center py-12 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">

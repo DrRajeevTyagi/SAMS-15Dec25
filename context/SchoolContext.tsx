@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Student, SchoolClass, StudentStream, Teacher, Workload, SubjectPeriodAllocation, ClassSession, ExamResult, CoCurricularActivity, SchoolContextType, ExamSchedule, ExamEntry, AdmissionField, SchoolEvent, EventStaffRole, EventStudentRole, User, UserRole, Message, Poll, DisciplinaryAction, Notice, ExamSubjectScore, ImportedSchoolData } from '../types';
+import { Student, SchoolClass, StudentStream, Teacher, Workload, SubjectPeriodAllocation, ClassSession, ExamResult, CoCurricularActivity, SchoolContextType, ExamSchedule, ExamEntry, AdmissionField, SchoolEvent, EventStaffRole, EventStudentRole, EventVolunteer, User, UserRole, Message, Poll, DisciplinaryAction, Notice, ExamSubjectScore, ImportedSchoolData } from '../types';
 import { STATIC_SCHOOL_DATA } from '../data/staticData';
 
 // =========================================================================================
@@ -621,79 +621,211 @@ const generateMockData = () => {
         }
     });
 
-    // --- EVENTS & PARTICIPATION GENERATION (RESTORED) ---
-    const pastEvents: SchoolEvent[] = [
-        { id: 'ev_1', name: 'Annual Sports Meet 2024', category: 'Sports', type: 'Intra-School', date: '2024-11-15', venue: 'School Ground', description: 'Annual athletic meet for all classes.', status: 'Completed', headTeacherId: 't_2', headTeacherName: 'Sports Dept', targetClassIds: [], staffRoles: [], studentRoles: [] },
-        { id: 'ev_2', name: 'Inter-House Debate', category: 'Literary', type: 'Intra-School', date: '2024-10-20', venue: 'Auditorium', description: 'Topic: AI in Education', status: 'Completed', headTeacherId: 't_5', headTeacherName: 'English Dept', targetClassIds: [], staffRoles: [], studentRoles: [] },
-        { id: 'ev_3', name: 'Science Exhibition', category: 'Scientific', type: 'Intra-School', date: '2024-12-05', venue: 'Science Block', description: 'Models and Experiments', status: 'Completed', headTeacherId: 't_10', headTeacherName: 'Science Dept', targetClassIds: [], staffRoles: [], studentRoles: [] },
-        { id: 'ev_4', name: 'Art Carnival', category: 'Visual Arts', type: 'Intra-School', date: '2024-09-10', venue: 'Art Room', description: 'Painting and Craft', status: 'Completed', headTeacherId: 't_15', headTeacherName: 'Art Dept', targetClassIds: [], staffRoles: [], studentRoles: [] },
-        { id: 'ev_5', name: 'Zonal Basketball', category: 'Sports', type: 'Inter-School', date: '2024-11-25', venue: 'DPS Rohini', description: 'Zonal Matches', status: 'Completed', headTeacherId: 't_2', headTeacherName: 'Sports Dept', targetClassIds: [], staffRoles: [], studentRoles: [] },
+    // --- COMPREHENSIVE EVENT GENERATION SYSTEM ---
+    // Age-appropriate event templates by grade level
+    const eventTemplates: Array<{
+        name: string;
+        category: SchoolEvent['category'];
+        type: 'Intra-School' | 'Inter-School';
+        minGrade: number; // Minimum grade (e.g., 1 = Class 1)
+        maxGrade: number; // Maximum grade (e.g., 12 = Class 12)
+        venue: string;
+        description: string;
+    }> = [
+        // NURSERY & PRIMARY (Nur-5) - Simple, fun activities
+        { name: 'Coloring Competition', category: 'Visual Arts', type: 'Intra-School', minGrade: 0, maxGrade: 2, venue: 'Art Room', description: 'Creative coloring activity for young students' },
+        { name: 'Story Telling Session', category: 'Literary', type: 'Intra-School', minGrade: 0, maxGrade: 3, venue: 'Library', description: 'Encouraging imagination through stories' },
+        { name: 'Rhyme Recitation', category: 'Performing Arts', type: 'Intra-School', minGrade: 0, maxGrade: 2, venue: 'Assembly Hall', description: 'Fun rhyme recitation competition' },
+        { name: 'Fun Run (50m)', category: 'Sports', type: 'Intra-School', minGrade: 1, maxGrade: 3, venue: 'School Ground', description: 'Short distance fun run for primary students' },
+        { name: 'Clay Modeling Workshop', category: 'Visual Arts', type: 'Intra-School', minGrade: 0, maxGrade: 4, venue: 'Art Room', description: 'Creative clay modeling activity' },
+        
+        // MIDDLE SCHOOL (6-8) - More structured activities
+        { name: 'Inter-House Quiz Competition', category: 'Scientific', type: 'Intra-School', minGrade: 6, maxGrade: 8, venue: 'Auditorium', description: 'General knowledge quiz competition' },
+        { name: 'Poster Making Competition', category: 'Visual Arts', type: 'Intra-School', minGrade: 4, maxGrade: 8, venue: 'Art Room', description: 'Theme-based poster making' },
+        { name: 'Debate Competition', category: 'Literary', type: 'Intra-School', minGrade: 7, maxGrade: 12, venue: 'Auditorium', description: 'Inter-house debate on current topics' },
+        { name: 'Science Model Exhibition', category: 'Scientific', type: 'Intra-School', minGrade: 6, maxGrade: 10, venue: 'Science Block', description: 'Display of science models and experiments' },
+        { name: 'Inter-House Football', category: 'Sports', type: 'Intra-School', minGrade: 6, maxGrade: 12, venue: 'Football Ground', description: 'Inter-house football tournament' },
+        { name: 'Dance Competition', category: 'Performing Arts', type: 'Intra-School', minGrade: 4, maxGrade: 12, venue: 'Auditorium', description: 'Cultural dance performances' },
+        { name: 'Cleanliness Drive', category: 'Leadership/Community', type: 'Intra-School', minGrade: 5, maxGrade: 10, venue: 'School Campus', description: 'Community service activity' },
+        
+        // SENIOR SCHOOL (9-12) - Advanced competitions
+        { name: 'Model United Nations (MUN)', category: 'Literary', type: 'Intra-School', minGrade: 9, maxGrade: 12, venue: 'Conference Hall', description: 'Simulated UN conference' },
+        { name: 'Robotics Championship', category: 'Scientific', type: 'Intra-School', minGrade: 9, maxGrade: 12, venue: 'Computer Lab', description: 'Robotics competition and exhibition' },
+        { name: 'Math Olympiad', category: 'Scientific', type: 'Intra-School', minGrade: 9, maxGrade: 12, venue: 'Exam Hall', description: 'Advanced mathematics competition' },
+        { name: 'Cricket Tournament', category: 'Sports', type: 'Intra-School', minGrade: 8, maxGrade: 12, venue: 'Cricket Ground', description: 'Inter-house cricket matches' },
+        { name: 'Theatre / Street Play', category: 'Performing Arts', type: 'Intra-School', minGrade: 9, maxGrade: 12, venue: 'Auditorium', description: 'Dramatic performances' },
+        { name: 'Creative Writing Competition', category: 'Literary', type: 'Intra-School', minGrade: 7, maxGrade: 12, venue: 'Library', description: 'Essay and creative writing contest' },
+        { name: 'Art Exhibition', category: 'Visual Arts', type: 'Intra-School', minGrade: 6, maxGrade: 12, venue: 'Art Gallery', description: 'Display of student artwork' },
+        { name: 'Student Council Election', category: 'Leadership/Community', type: 'Intra-School', minGrade: 9, maxGrade: 12, venue: 'Assembly Hall', description: 'Democratic election process' },
+        
+        // INTER-SCHOOL EVENTS (Senior students)
+        { name: 'Zonal Basketball Championship', category: 'Sports', type: 'Inter-School', minGrade: 9, maxGrade: 12, venue: 'DPS RK Puram', description: 'Inter-school basketball tournament' },
+        { name: 'Inter-School Science Fair', category: 'Scientific', type: 'Inter-School', minGrade: 9, maxGrade: 12, venue: 'DPS Vasant Kunj', description: 'Multi-school science exhibition' },
+        { name: 'Delhi State Debate Championship', category: 'Literary', type: 'Inter-School', minGrade: 10, maxGrade: 12, venue: 'Modern School', description: 'State-level debate competition' },
+        { name: 'National Art Competition', category: 'Visual Arts', type: 'Inter-School', minGrade: 9, maxGrade: 12, venue: 'Lalit Kala Akademi', description: 'National level art contest' },
+        { name: 'Inter-School Music Fest', category: 'Performing Arts', type: 'Inter-School', minGrade: 8, maxGrade: 12, venue: 'Kamani Auditorium', description: 'Multi-school music competition' },
+        
+        // ALL-GRADE EVENTS
+        { name: 'Annual Sports Day', category: 'Sports', type: 'Intra-School', minGrade: 1, maxGrade: 12, venue: 'School Ground', description: 'Annual athletic meet for all classes' },
+        { name: 'Annual Day Celebration', category: 'Performing Arts', type: 'Intra-School', minGrade: 1, maxGrade: 12, venue: 'Auditorium', description: 'Annual cultural program' },
+        { name: 'Plantation Drive', category: 'Leadership/Community', type: 'Intra-School', minGrade: 4, maxGrade: 12, venue: 'School Campus', description: 'Tree plantation activity' },
+        { name: 'Health Checkup Camp', category: 'Leadership/Community', type: 'Intra-School', minGrade: 1, maxGrade: 12, venue: 'School Clinic', description: 'Health awareness and checkup' },
     ];
 
-    const futureEvents: SchoolEvent[] = [
-        {
-            id: 'ev_6', name: 'Annual Day', category: 'Performing Arts', type: 'Intra-School', date: '2025-06-20', venue: 'Auditorium', description: 'Cultural', status: 'Upcoming', headTeacherId: 't_1', headTeacherName: 'Principal',
-            targetClassIds: allocatedClasses.map(c => c.id), staffRoles: [], studentRoles: []
-        },
-        {
-            id: 'ev_7', name: 'Math Olympiad', category: 'Scientific', type: 'Intra-School', date: '2025-05-15', venue: 'Exam Hall', description: 'Exam', status: 'Upcoming', headTeacherId: 't_12', headTeacherName: 'Math Dept',
-            targetClassIds: allocatedClasses.filter(c => c.name.includes('11') || c.name.includes('12')).map(c => c.id), staffRoles: [], studentRoles: []
+    // Helper: Convert grade string to number (handles Nur, LKG, UKG, and numeric)
+    const getGradeNum = (grade: string): number => {
+        const gradeLower = grade.toLowerCase();
+        if (gradeLower.includes('nur') || gradeLower === 'nursery') return 0;
+        if (gradeLower.includes('lkg') || gradeLower === 'lower kindergarten') return 0;
+        if (gradeLower.includes('ukg') || gradeLower === 'upper kindergarten') return 0;
+        const match = grade.match(/(\d+)/);
+        return match ? parseInt(match[1]) : 12;
+    };
+
+    // Helper: Get classes for a grade range
+    const getClassesForGradeRange = (minGrade: number, maxGrade: number): SchoolClass[] => {
+        return allocatedClasses.filter(c => {
+            const gradeNum = getGradeNum(c.grade);
+            return gradeNum >= minGrade && gradeNum <= maxGrade;
+        });
+    };
+
+    // Generate events from templates
+    const generatedEvents: SchoolEvent[] = [];
+    let eventCounter = 1;
+    const usedTeachers = new Set<string>(); // Track teachers already assigned as In-Charge
+    const availableTeachers = [...allocatedTeachers].filter(t => t && t.id);
+
+    // Shuffle teachers for random assignment
+    const shuffledTeachers = [...availableTeachers].sort(() => 0.5 - seededRandom());
+
+    // Generate events ensuring variety
+    eventTemplates.forEach((template, idx) => {
+        const targetClasses = getClassesForGradeRange(template.minGrade, template.maxGrade);
+        if (targetClasses.length === 0) return; // Skip if no classes match
+
+        // Find available teacher for In-Charge (prefer not already used)
+        let headTeacher = shuffledTeachers.find(t => !usedTeachers.has(t.id));
+        if (!headTeacher && shuffledTeachers.length > 0) {
+            // If all teachers used, reuse but ensure variety
+            headTeacher = shuffledTeachers[idx % shuffledTeachers.length];
         }
-    ];
+        if (!headTeacher) return; // Skip if no teachers available
 
-    // Assign *EVERY* student to at least 1 past event (Restored Logic)
+        usedTeachers.add(headTeacher.id);
+
+        // Add 1-3 staff members (different from In-Charge)
+        const staffPool = shuffledTeachers.filter(t => t.id !== headTeacher.id);
+        const numStaff = Math.min(Math.floor(seededRandom() * 3) + 1, staffPool.length);
+        const selectedStaff = staffPool.slice(0, numStaff).map(t => ({
+            teacherId: t.id,
+            teacherName: t.name,
+            role: ['Scoring', 'Discipline', 'Hospitality', 'Judging', 'Coordination'][Math.floor(seededRandom() * 5)]
+        }));
+
+        // Create event
+        const eventDate = new Date(2024, 8 + (idx % 4), 15 + (idx % 15)); // Spread across Sep-Dec 2024
+        const event: SchoolEvent = {
+            id: `ev_${eventCounter++}`,
+            name: template.name,
+            category: template.category,
+            type: template.type,
+            date: eventDate.toISOString().split('T')[0],
+            venue: template.venue,
+            description: template.description,
+            status: 'Completed',
+            headTeacherId: headTeacher.id,
+            headTeacherName: headTeacher.name,
+            targetClassIds: targetClasses.map(c => c.id),
+            staffRoles: selectedStaff,
+            studentRoles: [],
+            volunteers: []
+        };
+
+        generatedEvents.push(event);
+    });
+
+    // Assign students to events
     students.forEach(student => {
-        // Pick 1 to 3 random past events
+        if (!student.classId) return;
+        const studentClass = allocatedClasses.find(c => c && c.id === student.classId);
+        if (!studentClass) return;
+        const studentGrade = getGradeNum(studentClass.grade);
+
+        // Find events suitable for this student's grade
+        const suitableEvents = generatedEvents.filter(ev => {
+            const evClasses = allocatedClasses.filter(c => ev.targetClassIds.includes(c.id));
+            return evClasses.some(c => {
+                const grade = getGradeNum(c.grade);
+                return grade === studentGrade || Math.abs(grade - studentGrade) <= 2; // Allow ±2 grades
+            });
+        });
+
+        if (suitableEvents.length === 0) return;
+
+        // Assign student to 1-3 events
         const numEvents = Math.floor(seededRandom() * 3) + 1;
-        const shuffledEvents = [...pastEvents].sort(() => 0.5 - seededRandom());
-        const selectedEvents = shuffledEvents.slice(0, numEvents);
+        const selectedEvents = [...suitableEvents].sort(() => 0.5 - seededRandom()).slice(0, numEvents);
 
-        selectedEvents.forEach(ev => {
-            // Determine Role/Result
-            let achievement = '';
-            const roll = seededRandom();
+        selectedEvents.forEach((ev, evIdx) => {
+            const marks = Array.isArray(student.examResults) && student.examResults.length > 0 
+                ? student.examResults[0]?.totalPercentage || 0 
+                : 0;
 
-            // Scholars tend to win Debates/Science; Athletes win Sports
-            let winChance = 0.1;
-            const marks = student.examResults[0]?.totalPercentage || 0;
+            // Determine if student participates or just volunteers
+            // 70% participate, 30% volunteer only (to show exclusion)
+            const participate = evIdx === 0 || seededRandom() < 0.7;
 
-            if (ev.category === 'Scientific' || ev.category === 'Literary') {
-                if (marks > 90) winChance = 0.6; // High chance for scholars
+            if (participate) {
+                // Student participates - assign result
+                let achievement = '';
+                let winChance = 0.1;
+
+                if (ev.category === 'Scientific' || ev.category === 'Literary') {
+                    if (marks > 90) winChance = 0.6;
+                }
+                if (ev.category === 'Sports') {
+                    if (student.attendancePercentage < 85 && student.attendancePercentage > 70) winChance = 0.5;
+                }
+
+                if (seededRandom() < winChance) achievement = 'Winner (1st)';
+                else if (seededRandom() < winChance + 0.1) achievement = 'Runner Up (2nd)';
+                else if (seededRandom() < winChance + 0.2) achievement = 'Third Place';
+
+                ev.studentRoles.push({
+                    studentId: student.id,
+                    studentName: student.name,
+                    role: 'Participant',
+                    specificDuty: 'Participant',
+                    house: student.house,
+                    achievement: achievement
+                });
+
+                // Add to Student Profile Activities
+                if (!student.activities) student.activities = [];
+                student.activities.push({
+                    id: `act_${Date.now()}_${Math.floor(seededRandom() * 1000)}`,
+                    name: ev.name,
+                    date: ev.date,
+                    category: ev.category,
+                    type: ev.type,
+                    hoursSpent: Math.floor(seededRandom() * 10) + 2,
+                    achievement: achievement,
+                    role: 'Participant'
+                });
+            } else {
+                // Student volunteers but not selected (shows exclusion)
+                ev.volunteers.push({
+                    studentId: student.id,
+                    studentName: student.name,
+                    appliedDate: ev.date,
+                    house: student.house
+                });
             }
-            if (ev.category === 'Sports') {
-                if (student.attendancePercentage < 85 && student.attendancePercentage > 70) winChance = 0.5; // Heuristic for athletes
-            }
-
-            if (seededRandom() < winChance) achievement = 'Winner (1st)';
-            else if (seededRandom() < winChance + 0.1) achievement = 'Runner Up (2nd)';
-            else if (seededRandom() < winChance + 0.2) achievement = 'Third Place';
-
-            // Add to Event Role
-            ev.studentRoles.push({
-                studentId: student.id,
-                studentName: student.name,
-                role: 'Participant',
-                specificDuty: 'Participant',
-                house: student.house,
-                achievement: achievement
-            });
-
-            // Add to Student Profile Activities
-            if (!student.activities) student.activities = [];
-            student.activities.push({
-                id: `act_${Date.now()}_${Math.floor(seededRandom() * 1000)}`,
-                name: ev.name,
-                date: ev.date,
-                category: ev.category,
-                type: ev.type,
-                hoursSpent: Math.floor(seededRandom() * 10) + 2,
-                achievement: achievement,
-                role: 'Participant'
-            });
         });
     });
 
-    events.push(...pastEvents, ...futureEvents);
+    events.push(...generatedEvents);
 
     // --- EXAM SCHEDULE GENERATION ---
     // Term End Exams March 2026
