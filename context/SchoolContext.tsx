@@ -636,65 +636,380 @@ const generateMockData = () => {
         }
     });
 
-    // --- EVENTS & PARTICIPATION GENERATION (RESTORED) ---
+    // --- COMPREHENSIVE FACTORY-SET EVENTS (12 Events Covering All Teachers) ---
     const pastEvents: SchoolEvent[] = [
-        { id: 'ev_1', name: 'Annual Sports Meet 2024', category: 'Sports', type: 'Intra-School', date: '2024-11-15', venue: 'School Ground', description: 'Annual athletic meet for all classes.', status: 'Completed', headTeacherId: 't_2', headTeacherName: 'Sports Dept', targetClassIds: [], staffRoles: [], studentRoles: [], notes: [], hoursSpent: 8 },
-        { id: 'ev_2', name: 'Inter-House Debate', category: 'Literary', type: 'Intra-School', date: '2024-10-20', venue: 'Auditorium', description: 'Topic: AI in Education', status: 'Completed', headTeacherId: 't_5', headTeacherName: 'English Dept', targetClassIds: [], staffRoles: [], studentRoles: [], notes: [], hoursSpent: 4 },
-        { id: 'ev_3', name: 'Science Exhibition', category: 'Scientific', type: 'Intra-School', date: '2024-12-05', venue: 'Science Block', description: 'Models and Experiments', status: 'Completed', headTeacherId: 't_10', headTeacherName: 'Science Dept', targetClassIds: [], staffRoles: [], studentRoles: [], notes: [], hoursSpent: 6 },
-        { id: 'ev_4', name: 'Art Carnival', category: 'Visual Arts', type: 'Intra-School', date: '2024-09-10', venue: 'Art Room', description: 'Painting and Craft', status: 'Completed', headTeacherId: 't_15', headTeacherName: 'Art Dept', targetClassIds: [], staffRoles: [], studentRoles: [], notes: [], hoursSpent: 5 },
-        { id: 'ev_5', name: 'Zonal Basketball', category: 'Sports', type: 'Inter-School', date: '2024-11-25', venue: 'DPS Rohini', description: 'Zonal Matches', status: 'Completed', headTeacherId: 't_2', headTeacherName: 'Sports Dept', targetClassIds: [], staffRoles: [], studentRoles: [], notes: [], hoursSpent: 10 },
+        {
+            id: 'ev_1',
+            name: 'Annual Sports Meet 2024',
+            category: 'Sports',
+            type: 'Intra-School',
+            date: '2024-11-15',
+            venue: 'School Sports Ground',
+            description: 'Annual athletic meet featuring track, field, and team sports competitions for all houses.',
+            status: 'Completed',
+            headTeacherId: 't_2',
+            headTeacherName: allocatedTeachers[2]?.name || 'Mr/Ms Sports Head',
+            targetClassIds: allocatedClasses.map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_15', teacherName: allocatedTeachers[15]?.name || 'Staff 15', role: 'Organizing Committee' },
+                { teacherId: 't_25', teacherName: allocatedTeachers[25]?.name || 'Staff 25', role: 'Coordinator' },
+                { teacherId: 't_35', teacherName: allocatedTeachers[35]?.name || 'Staff 35', role: 'Member' }
+            ],
+            studentRoles: [],
+            notes: [
+                { id: 'n_1_1', authorId: 't_2', authorName: allocatedTeachers[2]?.name || 'Sports Head', authorRole: 'Admin' as const, date: '2024-11-16', targetType: 'event' as const, targetId: 'ev_1', targetName: 'Annual Sports Meet 2024', comment: 'Excellent participation from all houses. Red House showed exceptional team spirit!' }
+            ],
+            hoursSpent: 8
+        },
+        {
+            id: 'ev_2',
+            name: 'Inter-House Debate Competition',
+            category: 'Literary',
+            type: 'Intra-School',
+            date: '2024-10-20',
+            venue: 'School Auditorium',
+            description: 'Topic: "Artificial Intelligence: Boon or Bane for Future Education"',
+            status: 'Completed',
+            headTeacherId: 't_5',
+            headTeacherName: allocatedTeachers[5]?.name || 'Mr/Ms English Head',
+            targetClassIds: allocatedClasses.filter(c => c.name.includes('9') || c.name.includes('10') || c.name.includes('11') || c.name.includes('12')).map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_6', teacherName: allocatedTeachers[6]?.name || 'Staff 6', role: 'Judge' },
+                { teacherId: 't_12', teacherName: allocatedTeachers[12]?.name || 'Staff 12', role: 'Coordinator' },
+                { teacherId: 't_18', teacherName: allocatedTeachers[18]?.name || 'Staff 18', role: 'Timekeeper' }
+            ],
+            studentRoles: [],
+            notes: [
+                { id: 'n_2_1', authorId: 't_5', authorName: allocatedTeachers[5]?.name || 'English Head', authorRole: 'Admin' as const, date: '2024-10-21', targetType: 'event' as const, targetId: 'ev_2', targetName: 'Inter-House Debate', comment: 'Impressive arguments presented by all teams. Blue House speakers showed remarkable research depth.' }
+            ],
+            hoursSpent: 4
+        },
+        {
+            id: 'ev_3',
+            name: 'Science Exhibition 2024',
+            category: 'Scientific',
+            type: 'Intra-School',
+            date: '2024-12-05',
+            venue: 'Science Block',
+            description: 'Working models and experiments showcasing innovation in Physics, Chemistry, and Biology',
+            status: 'Completed',
+            headTeacherId: 't_10',
+            headTeacherName: allocatedTeachers[10]?.name || 'Mr/Ms Science Head',
+            targetClassIds: allocatedClasses.map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_11', teacherName: allocatedTeachers[11]?.name || 'Staff 11', role: 'Technical Support' },
+                { teacherId: 't_20', teacherName: allocatedTeachers[20]?.name || 'Staff 20', role: 'Judging Panel' },
+                { teacherId: 't_30', teacherName: allocatedTeachers[30]?.name || 'Staff 30', role: 'Setup Coordinator' }
+            ],
+            studentRoles: [],
+            notes: [
+                { id: 'n_3_1', authorId: 't_10', authorName: allocatedTeachers[10]?.name || 'Science Head', authorRole: 'Admin' as const, date: '2024-12-06', targetType: 'event' as const, targetId: 'ev_3', targetName: 'Science Exhibition', comment: 'Outstanding creativity in model submissions. Several projects worthy of external competitions.' }
+            ],
+            hoursSpent: 6
+        },
+        {
+            id: 'ev_4',
+            name: 'Art & Craft Carnival',
+            category: 'Visual Arts',
+            type: 'Intra-School',
+            date: '2024-09-10',
+            venue: 'Art Room & Gallery',
+            description: 'Painting, sketching, clay modeling, and traditional crafts competition',
+            status: 'Completed',
+            headTeacherId: 't_16',
+            headTeacherName: allocatedTeachers[16]?.name || 'Mr/Ms Art Head',
+            targetClassIds: allocatedClasses.map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_17', teacherName: allocatedTeachers[17]?.name || 'Staff 17', role: 'Gallery Setup' },
+                { teacherId: 't_27', teacherName: allocatedTeachers[27]?.name || 'Staff 27', role: 'Judge' },
+                { teacherId: 't_37', teacherName: allocatedTeachers[37]?.name || 'Staff 37', role: 'Materials Manager' }
+            ],
+            studentRoles: [],
+            notes: [],
+            hoursSpent: 5
+        },
+        {
+            id: 'ev_5',
+            name: 'Zonal Basketball Championship',
+            category: 'Sports',
+            type: 'Inter-School',
+            date: '2024-11-25',
+            venue: 'DPS Rohini Sports Complex',
+            description: 'Inter-school zonal basketball tournament',
+            status: 'Completed',
+            headTeacherId: 't_2',
+            headTeacherName: allocatedTeachers[2]?.name || 'Mr/Ms Sports Head',
+            targetClassIds: allocatedClasses.filter(c => c.name.includes('9') || c.name.includes('10') || c.name.includes('11') || c.name.includes('12')).map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_15', teacherName: allocatedTeachers[15]?.name || 'Staff 15', role: 'Team Coach' },
+                { teacherId: 't_25', teacherName: allocatedTeachers[25]?.name || 'Staff 25', role: 'Transport Coordinator' }
+            ],
+            studentRoles: [],
+            notes: [
+                { id: 'n_5_1', authorId: 't_15', authorName: allocatedTeachers[15]?.name || 'Coach', authorRole: 'Admin' as const, date: '2024-11-26', targetType: 'event' as const, targetId: 'ev_5', targetName: 'Zonal Basketball', comment: 'Team displayed great sportsmanship despite facing tough competition. Proud of their performance!' }
+            ],
+            hoursSpent: 10
+        },
+        {
+            id: 'ev_6',
+            name: 'Music & Dance Fest 2024',
+            category: 'Performing Arts',
+            type: 'Intra-School',
+            date: '2024-10-05',
+            venue: 'School Auditorium',
+            description: 'Showcase of classical dance, group dance, solo singing, and instrumental music',
+            status: 'Completed',
+            headTeacherId: 't_14',
+            headTeacherName: allocatedTeachers[14]?.name || 'Mr/Ms Music Head',
+            targetClassIds: allocatedClasses.map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_24', teacherName: allocatedTeachers[24]?.name || 'Staff 24', role: 'Technical Support' },
+                { teacherId: 't_34', teacherName: allocatedTeachers[34]?.name || 'Staff 34', role: 'Choreography Advisor' },
+                { teacherId: 't_44', teacherName: allocatedTeachers[44]?.name || 'Staff 44', role: 'Sound Manager' }
+            ],
+            studentRoles: [],
+            notes: [],
+            hoursSpent: 6
+        },
+        {
+            id: 'ev_7',
+            name: 'Mathematics Quiz Competition',
+            category: 'Academic',
+            type: 'Intra-School',
+            date: '2024-09-28',
+            venue: 'Conference Room',
+            description: 'Inter-class Math quiz covering algebra, geometry, and mental math',
+            status: 'Completed',
+            headTeacherId: 't_1',
+            headTeacherName: allocatedTeachers[1]?.name || 'Mr/Ms Math Head',
+            targetClassIds: allocatedClasses.filter(c => c.name.includes('6') || c.name.includes('7') || c.name.includes('8') || c.name.includes('9')).map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_19', teacherName: allocatedTeachers[19]?.name || 'Staff 19', role: 'Question Master' },
+                { teacherId: 't_21', teacherName: allocatedTeachers[21]?.name || 'Staff 21', role: 'Scorekeeper' },
+                { teacherId: 't_29', teacherName: allocatedTeachers[29]?.name || 'Staff 29', role: 'Coordinator' }
+            ],
+            studentRoles: [],
+            notes: [
+                { id: 'n_7_1', authorId: 't_1', authorName: allocatedTeachers[1]?.name || 'Math Head', authorRole: 'Admin' as const, date: '2024-09-29', targetType: 'event' as const, targetId: 'ev_7', targetName: 'Math Quiz', comment: 'Exceptional mental math skills displayed. Questions were challenging yet engaging for participants.' }
+            ],
+            hoursSpent: 3
+        },
+        {
+            id: 'ev_8',
+            name: 'Community Service Drive - Clean India',
+            category: 'Social Service',
+            type: 'Intra-School',
+            date: '2024-10-02',
+            venue: 'Local Community Area',
+            description: 'Cleanliness drive and awareness campaign in nearby residential areas',
+            status: 'Completed',
+            headTeacherId: 't_7',
+            headTeacherName: allocatedTeachers[7]?.name || 'Mr/Ms Social Science Head',
+            targetClassIds: allocatedClasses.filter(c => c.name.includes('9') || c.name.includes('10') || c.name.includes('11') || c.name.includes('12')).map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_8', teacherName: allocatedTeachers[8]?.name || 'Staff 8', role: 'Group Leader' },
+                { teacherId: 't_22', teacherName: allocatedTeachers[22]?.name || 'Staff 22', role: 'Safety Coordinator' },
+                { teacherId: 't_32', teacherName: allocatedTeachers[32]?.name || 'Staff 32', role: 'Documentation' },
+                { teacherId: 't_42', teacherName: allocatedTeachers[42]?.name || 'Staff 42', role: 'Volunteer' }
+            ],
+            studentRoles: [],
+            notes: [
+                { id: 'n_8_1', authorId: 't_7', authorName: allocatedTeachers[7]?.name || 'Social Science Head', authorRole: 'Admin' as const, date: '2024-10-03', targetType: 'event' as const, targetId: 'ev_8', targetName: 'Clean India Drive', comment: 'Students showed genuine commitment to social responsibility. Community residents appreciated the initiative.' }
+            ],
+            hoursSpent: 4
+        },
+        {
+            id: 'ev_9',
+            name: 'Hindi Poetry Recitation',
+            category: 'Literary',
+            type: 'Intra-School',
+            date: '2024-09-14',
+            venue: 'Library Hall',
+            description: 'Hindi Diwas celebration with poetry and prose recitation',
+            status: 'Completed',
+            headTeacherId: 't_4',
+            headTeacherName: allocatedTeachers[4]?.name || 'Mr/Ms Hindi Head',
+            targetClassIds: allocatedClasses.filter(c => c.name.includes('6') || c.name.includes('7') || c.name.includes('8')).map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_13', teacherName: allocatedTeachers[13]?.name || 'Staff 13', role: 'Judge' },
+                { teacherId: 't_23', teacherName: allocatedTeachers[23]?.name || 'Staff 23', role: 'Coordinator' },
+                { teacherId: 't_33', teacherName: allocatedTeachers[33]?.name || 'Staff 33', role: 'Anchor' }
+            ],
+            studentRoles: [],
+            notes: [],
+            hoursSpent: 3
+        },
+        {
+            id: 'ev_10',
+            name: 'Computer Science Hackathon',
+            category: 'Technology',
+            type: 'Intra-School',
+            date: '2024-11-08',
+            venue: 'Computer Lab',
+            description: 'Coding challenge and app development competition',
+            status: 'Completed',
+            headTeacherId: 't_9',
+            headTeacherName: allocatedTeachers[9]?.name || 'Mr/Ms CS Head',
+            targetClassIds: allocatedClasses.filter(c => c.name.includes('10') || c.name.includes('11') || c.name.includes('12')).map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_26', teacherName: allocatedTeachers[26]?.name || 'Staff 26', role: 'Technical Mentor' },
+                { teacherId: 't_36', teacherName: allocatedTeachers[36]?.name || 'Staff 36', role: 'Judge' },
+                { teacherId: 't_46', teacherName: allocatedTeachers[46]?.name || 'Staff 46', role: 'IT Support' }
+            ],
+            studentRoles: [],
+            notes: [
+                { id: 'n_10_1', authorId: 't_9', authorName: allocatedTeachers[9]?.name || 'CS Head', authorRole: 'Admin' as const, date: '2024-11-09', targetType: 'event' as const, targetId: 'ev_10', targetName: 'CS Hackathon', comment: 'Impressive problem-solving and innovation. Several projects have commercial potential!' }
+            ],
+            hoursSpent: 8
+        },
+        {
+            id: 'ev_11',
+            name: 'Environmental Awareness Campaign',
+            category: 'Scientific',
+            type: 'Intra-School',
+            date: '2024-06-05',
+            venue: 'School Campus',
+            description: 'World Environment Day - Tree plantation and conservation workshops',
+            status: 'Completed',
+            headTeacherId: 't_3',
+            headTeacherName: allocatedTeachers[3]?.name || 'Mr/Ms Biology Head',
+            targetClassIds: allocatedClasses.map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_28', teacherName: allocatedTeachers[28]?.name || 'Staff 28', role: 'Plantation Coordinator' },
+                { teacherId: 't_38', teacherName: allocatedTeachers[38]?.name || 'Staff 38', role: 'Workshop Facilitator' },
+                { teacherId: 't_48', teacherName: allocatedTeachers[48]?.name || 'Staff 48', role: 'Documentation' }
+            ],
+            studentRoles: [],
+            notes: [],
+            hoursSpent: 5
+        },
+        {
+            id: 'ev_12',
+            name: 'Inter-School Cricket Tournament',
+            category: 'Sports',
+            type: 'Inter-School',
+            date: '2024-12-15',
+            venue: 'Yamuna Sports Complex',
+            description: 'Zone-level cricket tournament',
+            status: 'Completed',
+            headTeacherId: 't_2',
+            headTeacherName: allocatedTeachers[2]?.name || 'Mr/Ms Sports Head',
+            targetClassIds: allocatedClasses.filter(c => c.name.includes('9') || c.name.includes('10') || c.name.includes('11') || c.name.includes('12')).map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_15', teacherName: allocatedTeachers[15]?.name || 'Staff 15', role: 'Coach' },
+                { teacherId: 't_40', teacherName: allocatedTeachers[40]?.name || 'Staff 40', role: 'Manager' },
+                { teacherId: 't_50', teacherName: allocatedTeachers[50]?.name || 'Staff 50', role: 'Medical Coordinator' },
+                { teacherId: 't_52', teacherName: allocatedTeachers[52]?.name || 'Staff 52', role: 'Transport' }
+            ],
+            studentRoles: [],
+            notes: [
+                { id: 'n_12_1', authorId: 't_2', authorName: allocatedTeachers[2]?.name || 'Sports Head', authorRole: 'Admin' as const, date: '2024-12-16', targetType: 'event' as const, targetId: 'ev_12', targetName: 'Cricket Tournament', comment: 'Team played with determination and strategic thinking. Reached semi-finals!' }
+            ],
+            hoursSpent: 12
+        }
     ];
 
     const futureEvents: SchoolEvent[] = [
         {
-            id: 'ev_6', name: 'Annual Day', category: 'Performing Arts', type: 'Intra-School', date: '2025-06-20', venue: 'Auditorium', description: 'Cultural', status: 'Upcoming', headTeacherId: 't_1', headTeacherName: 'Principal',
-            targetClassIds: allocatedClasses.map(c => c.id), staffRoles: [], studentRoles: [], notes: [], hoursSpent: 12
+            id: 'ev_13',
+            name: 'Annual Day 2025',
+            category: 'Performing Arts',
+            type: 'Intra-School',
+            date: '2025-06-20',
+            venue: 'School Auditorium',
+            description: 'Grand cultural program featuring drama, dance, and talent showcase',
+            status: 'Upcoming',
+            headTeacherId: 't_0',
+            headTeacherName: allocatedTeachers[0]?.name || 'Principal',
+            targetClassIds: allocatedClasses.map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_14', teacherName: allocatedTeachers[14]?.name || 'Staff 14', role: 'Cultural Coordinator' },
+                { teacherId: 't_24', teacherName: allocatedTeachers[24]?.name || 'Staff 24', role: 'Stage Manager' },
+                { teacherId: 't_41', teacherName: allocatedTeachers[41]?.name || 'Staff 41', role: 'Costume Coordinator' },
+                { teacherId: 't_51', teacherName: allocatedTeachers[51]?.name || 'Staff 51', role: 'Anchor' }
+            ],
+            studentRoles: [],
+            notes: [],
+            hoursSpent: 12
         },
         {
-            id: 'ev_7', name: 'Math Olympiad', category: 'Scientific', type: 'Intra-School', date: '2025-05-15', venue: 'Exam Hall', description: 'Exam', status: 'Upcoming', headTeacherId: 't_12', headTeacherName: 'Math Dept',
-            targetClassIds: allocatedClasses.filter(c => c.name.includes('11') || c.name.includes('12')).map(c => c.id), staffRoles: [], studentRoles: [], notes: [], hoursSpent: 3
+            id: 'ev_14',
+            name: 'National Mathematics Olympiad',
+            category: 'Academic',
+            type: 'Intra-School',
+            date: '2025-05-15',
+            venue: 'Examination Hall',
+            description: 'Preliminary round for national level math olympiad',
+            status: 'Upcoming',
+            headTeacherId: 't_1',
+            headTeacherName: allocatedTeachers[1]?.name || 'Math Head',
+            targetClassIds: allocatedClasses.filter(c => c.name.includes('11') || c.name.includes('12')).map(c => c.id),
+            staffRoles: [
+                { teacherId: 't_19', teacherName: allocatedTeachers[19]?.name || 'Staff 19', role: 'Coordinator' },
+                { teacherId: 't_39', teacherName: allocatedTeachers[39]?.name || 'Staff 39', role: 'Invigilator' },
+                { teacherId: 't_49', teacherName: allocatedTeachers[49]?.name || 'Staff 49', role: 'Registration Desk' }
+            ],
+            studentRoles: [],
+            notes: [],
+            hoursSpent: 3
         }
     ];
 
-    // Assign *EVERY* student to at least 1 past event (Restored Logic)
-    students.forEach(student => {
-        // Pick 1 to 3 random past events
-        const numEvents = Math.floor(seededRandom() * 3) + 1;
+    // --- SMART PARTICIPATION ASSIGNMENT with VOLUNTEER SYSTEM ---
+    // Ensure coverage of all students with realistic participation patterns
+
+    // First, assign participants to past events (70% of students participate)
+    const participatingStudents = students.slice(0, Math.floor(students.length * 0.7));
+
+    participatingStudents.forEach(student => {
+        // Each student participates in 1-3 events based on their profile
+        const marks = student.examResults[0]?.totalPercentage || 0;
+        const isScholar = marks > 85;
+        const isAthlete = student.attendancePercentage < 85 && student.attendancePercentage > 70;
+
+        const numEvents = isScholar || isAthlete ? Math.floor(seededRandom() * 3) + 2 : Math.floor(seededRandom() * 2) + 1;
         const shuffledEvents = [...pastEvents].sort(() => 0.5 - seededRandom());
         const selectedEvents = shuffledEvents.slice(0, numEvents);
 
         selectedEvents.forEach(ev => {
-            // Determine Role/Result
+            // Determine achievement based on event type and student profile
             let achievement = '';
+            let points = 1; // Default participation points
+
+            // Matching logic: Scholars excel in Academic/Literary/Scientific, Athletes in Sports
+            let winChance = 0.05;
+            if ((ev.category === 'Scientific' || ev.category === 'Literary' || ev.category === 'Academic' || ev.category === 'Technology') && isScholar) {
+                winChance = 0.4;
+            } else if ((ev.category === 'Sports') && isAthlete) {
+                winChance = 0.35;
+            } else if (ev.category === 'Performing Arts' || ev.category === 'Visual Arts') {
+                winChance = 0.2; // Arts are more evenly distributed
+            }
+
             const roll = seededRandom();
-
-            // Scholars tend to win Debates/Science; Athletes win Sports
-            let winChance = 0.1;
-            const marks = student.examResults[0]?.totalPercentage || 0;
-
-            if (ev.category === 'Scientific' || ev.category === 'Literary') {
-                if (marks > 90) winChance = 0.6; // High chance for scholars
+            if (roll < winChance * 0.3) {
+                achievement = 'Winner (1st)';
+                points = 7;
+            } else if (roll < winChance * 0.6) {
+                achievement = 'Runner Up (2nd)';
+                points = 5;
+            } else if (roll < winChance) {
+                achievement = 'Third Place';
+                points = 3;
             }
-            if (ev.category === 'Sports') {
-                if (student.attendancePercentage < 85 && student.attendancePercentage > 70) winChance = 0.5; // Heuristic for athletes
-            }
 
-            if (seededRandom() < winChance) achievement = 'Winner (1st)';
-            else if (seededRandom() < winChance + 0.1) achievement = 'Runner Up (2nd)';
-            else if (seededRandom() < winChance + 0.2) achievement = 'Third Place';
-
-            // Add to Event Role
+            // Add to Event's student roles
             ev.studentRoles.push({
                 studentId: student.id,
                 studentName: student.name,
                 role: 'Participant',
-                status: 'participant', // NEW: Already completed so status is participant
-                specificDuty: 'Participant',
+                status: 'participant', // Completed events have confirmed participants
+                specificDuty: achievement || 'Participant',
                 house: student.house,
                 achievement: achievement
             });
 
-            // Add to Student Profile Activities
+            // Add to Student's activity log
             if (!student.activities) student.activities = [];
             student.activities.push({
                 id: `act_${Date.now()}_${Math.floor(seededRandom() * 1000)}`,
@@ -702,11 +1017,50 @@ const generateMockData = () => {
                 date: ev.date,
                 category: ev.category,
                 type: ev.type,
-                hoursSpent: Math.floor(seededRandom() * 10) + 2,
+                hoursSpent: ev.hoursSpent || Math.floor(seededRandom() * 8) + 3,
                 achievement: achievement,
                 role: 'Participant'
             });
         });
+    });
+
+    // Add volunteers to some upcoming events (students who APPLIED but weren't selected yet)
+    const nonParticipants = students.slice(Math.floor(students.length * 0.7));
+    futureEvents.forEach(ev => {
+        const numVolunteers = Math.min(Math.floor(seededRandom() * 8) + 3, nonParticipants.length);
+        const volunteers = nonParticipants.slice(0, numVolunteers);
+
+        volunteers.forEach(student => {
+            ev.studentRoles.push({
+                studentId: student.id,
+                studentName: student.name,
+                role: 'Participant',
+                status: 'volunteered', // Applied but not yet selected
+                appliedDate: new Date(Date.now() - Math.floor(seededRandom() * 10) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                specificDuty: 'Awaiting Selection',
+                house: student.house
+            });
+        });
+    });
+
+    // Add some realistic notes with specific student targets
+    pastEvents.forEach(ev => {
+        if (ev.studentRoles.length > 0 && seededRandom() > 0.5) {
+            const winner = ev.studentRoles.find(r => r.achievement?.includes('Winner'));
+            if (winner) {
+                ev.notes.push({
+                    id: `n_${ev.id}_appreciation`,
+                    authorId: ev.headTeacherId,
+                    authorName: ev.headTeacherName,
+                    authorRole: 'Admin' as const,
+                    date: ev.date,
+                    targetType: 'student' as const,
+                    targetId: winner.studentId,
+                    targetName: winner.studentName,
+                    comment: `Exceptional performance by ${winner.studentName}! Your dedication and hard work truly paid off. Keep up the brilliant work!`
+                });
+            }
+        }
     });
 
     events.push(...pastEvents, ...futureEvents);

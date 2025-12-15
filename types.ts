@@ -196,7 +196,7 @@ export interface EventNote {
 export interface SchoolEvent {
   id: string;
   name: string;
-  category: 'Sports' | 'Visual Arts' | 'Performing Arts' | 'Scientific' | 'Literary' | 'Leadership/Community';
+  category: 'Sports' | 'Visual Arts' | 'Performing Arts' | 'Scientific' | 'Literary' | 'Leadership/Community' | 'Academic' | 'Technology' | 'Social Service';
   type: 'Intra-School' | 'Inter-School'; // NEW: Scope of event
   date: string;
   venue: string; // If Inter-School, this is the Host School Name
