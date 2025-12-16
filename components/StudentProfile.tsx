@@ -355,8 +355,8 @@ const StudentProfile: React.FC = () => {
                                         <div key={action.id} className="p-3 text-sm">
                                             <div className="flex justify-between items-center mb-1">
                                                 <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${action.type === 'Yellow' ? 'bg-yellow-100 text-yellow-800' :
-                                                        action.type === 'Pink' ? 'bg-pink-100 text-pink-800' :
-                                                            'bg-red-100 text-red-800'
+                                                    action.type === 'Pink' ? 'bg-pink-100 text-pink-800' :
+                                                        'bg-red-100 text-red-800'
                                                     }`}>
                                                     {action.type} Card ({action.penaltyPoints})
                                                 </span>
@@ -453,6 +453,61 @@ const StudentProfile: React.FC = () => {
                                     </div>
                                 )) : (
                                     <p className="text-gray-500 italic">No classes missed recently.</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* MY PARTICIPATING EVENTS */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
+                                <Calendar size={20} className="text-school-500" />
+                                My Participating Events
+                            </h3>
+                            <div className="space-y-3">
+                                {events.filter(e => e.studentRoles.some(r => r.studentId === student.id)).length > 0 ? (
+                                    events
+                                        .filter(e => e.studentRoles.some(r => r.studentId === student.id))
+                                        .map(event => {
+                                            const myRole = event.studentRoles.find(r => r.studentId === student.id);
+                                            return (
+                                                <div key={event.id} className="p-3 bg-school-50 rounded-lg border border-school-100">
+                                                    <div className="flex justify-between items-start">
+                                                        <span className="font-semibold text-gray-800 flex items-center gap-2">
+                                                            {event.name}
+                                                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide ${event.status === 'Completed' ? 'bg-gray-100 text-gray-600' :
+                                                                    event.status === 'Ongoing' ? 'bg-blue-100 text-blue-600' :
+                                                                        'bg-green-100 text-green-600'
+                                                                }`}>
+                                                                {event.status}
+                                                            </span>
+                                                        </span>
+                                                        <span className="text-xs text-school-600 font-mono">{event.date}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 mt-1">
+                                                        <span className="text-xs px-2 py-0.5 bg-white rounded border border-school-100 text-school-700">
+                                                            {event.category}
+                                                        </span>
+                                                        {myRole?.status === 'volunteered' && (
+                                                            <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded font-medium">
+                                                                ⏳ Application Pending
+                                                            </span>
+                                                        )}
+                                                        {myRole?.status === 'participant' && event.status !== 'Completed' && (
+                                                            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
+                                                                ✓ Confirmed
+                                                            </span>
+                                                        )}
+                                                        {myRole?.achievement && (
+                                                            <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded font-bold">
+                                                                🏆 {myRole.achievement}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                ) : (
+                                    <p className="text-gray-500 italic">Not participating in any events yet.</p>
                                 )}
                             </div>
                         </div>
@@ -568,8 +623,8 @@ const StudentProfile: React.FC = () => {
                                 onClick={handleAiAnalysis}
                                 disabled={!canRunAnalysis}
                                 className={`px-6 py-3 rounded-lg font-medium shadow-md transition-all flex items-center gap-2 mx-auto ${canRunAnalysis
-                                        ? 'bg-school-600 text-white hover:bg-school-700'
-                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    ? 'bg-school-600 text-white hover:bg-school-700'
+                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                     }`}
                                 title={canRunAnalysis ? "Run AI Analysis" : "Analysis available to Teachers and Admin"}
                             >

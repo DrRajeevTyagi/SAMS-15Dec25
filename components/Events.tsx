@@ -274,12 +274,13 @@ const Events: React.FC = () => {
     };
 
     // --- FILTERED LISTS FOR STUDENT VIEW ---
+    // Show ALL events targeting student's class (both upcoming and completed)
     const studentUpcomingEvents = isStudent && studentProfile
         ? events.filter(e => e.status !== 'Completed' && e.targetClassIds.includes(studentProfile.classId || ''))
         : [];
 
     const studentPastEvents = isStudent && studentProfile
-        ? events.filter(e => e.status === 'Completed' && e.studentRoles.some(r => r.studentId === studentProfile.id))
+        ? events.filter(e => e.status === 'Completed' && e.targetClassIds.includes(studentProfile.classId || ''))
         : [];
 
     return (
