@@ -43,9 +43,23 @@ const EventDetails: React.FC = () => {
 
     const addStaff = () => {
         if (!newStaff.name) return;
+
+        // Find the actual teacher object to get real teacherId
+        const selectedTeacher = teachers.find(t => t.name === newStaff.name);
+        if (!selectedTeacher) {
+            alert('Teacher not found. Please select a valid teacher.');
+            return;
+        }
+
+        // Check if teacher already in team
+        if (event.staffRoles.some(r => r.teacherId === selectedTeacher.id)) {
+            alert('This teacher is already on the team!');
+            return;
+        }
+
         const newRole: EventStaffRole = {
-            teacherId: `t${Date.now()}`,
-            teacherName: newStaff.name,
+            teacherId: selectedTeacher.id, // Use actual teacher ID
+            teacherName: selectedTeacher.name,
             role: newStaff.role || 'Member'
         };
         setEvent({ ...event, staffRoles: [...event.staffRoles, newRole] });
