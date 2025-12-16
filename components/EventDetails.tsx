@@ -10,7 +10,7 @@ const EventDetails: React.FC = () => {
     const { id } = useParams();
     const { events, updateEvent, students, teachers, currentUser, addEventNote, deleteEventNote } = useSchool(); // Added new methods
     const [event, setEvent] = useState<SchoolEvent | undefined>(undefined);
-    const [activeTab, setActiveTab] = useState<'staff' | 'students' | 'volunteers' | 'results'>('staff'); // Added volunteers tab
+    const [activeTab, setActiveTab] = useState<'staff' | 'students' | 'volunteers' | 'results'>('results'); // Default to results tab
     const [isSaved, setIsSaved] = useState(true);
 
     // NEW: Notes state
@@ -33,13 +33,6 @@ const EventDetails: React.FC = () => {
     const isOrganizer = currentUser?.role === 'Admin' ||
         event.headTeacherId === currentUser?.id ||
         event.staffRoles.some(r => r.teacherId === currentUser?.id);
-
-    // Set default tab based on user role
-    useEffect(() => {
-        if (!isOrganizer) {
-            setActiveTab('results');
-        }
-    }, [isOrganizer]);
 
     const handleSaveToContext = () => {
         if (event) {
