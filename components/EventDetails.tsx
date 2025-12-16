@@ -69,13 +69,27 @@ const EventDetails: React.FC = () => {
 
     const addStudent = () => {
         if (!newStudent.name) return;
+
+        // Find the actual student object to get real studentId
+        const selectedStudent = students.find(s => s.name === newStudent.name);
+        if (!selectedStudent) {
+            alert('Student not found. Please select a valid student.');
+            return;
+        }
+
+        // Check if student already added
+        if (event.studentRoles.some(r => r.studentId === selectedStudent.id)) {
+            alert('This student is already added to the event!');
+            return;
+        }
+
         const newRole: EventStudentRole = {
-            studentId: `s${Date.now()}`,
-            studentName: newStudent.name,
+            studentId: selectedStudent.id, // Use actual student ID
+            studentName: selectedStudent.name,
             role: newStudent.role as any,
             status: 'participant', // NEW: Direct adds are participants
             specificDuty: newStudent.specific,
-            house: newStudent.house
+            house: selectedStudent.house || newStudent.house // Use student's actual house
         };
         setEvent({ ...event, studentRoles: [...event.studentRoles, newRole] });
         setNewStudent({ name: '', role: 'Participant', specific: '', house: 'Red' });
