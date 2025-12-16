@@ -134,7 +134,7 @@ const EventDetails: React.FC = () => {
                     disabled={isSaved}
                     className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all ${isSaved
                         ? 'bg-green-100 text-green-700 cursor-default'
-                        : 'bg-school-600 text-white hover:bg-school-700 shadow-md'
+                        : 'bg-school-600 text-white hover:bg-school-700 shadow-md animate-pulse'
                         }`}
                 >
                     {isSaved ? <CheckCircle size={18} /> : <Save size={18} />}
@@ -477,17 +477,27 @@ const EventDetails: React.FC = () => {
                                             <p className="text-xs text-gray-500">{role.specificDuty}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <select
-                                                className="bg-white text-gray-900 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-school-500"
-                                                value={role.achievement || ''}
-                                                onChange={(e) => updateResult(role.studentId, e.target.value)}
-                                            >
-                                                <option value="">-- No Position --</option>
-                                                <option value="Winner (1st)">Winner (1st)</option>
-                                                <option value="Runner Up (2nd)">Runner Up (2nd)</option>
-                                                <option value="Third Place">Third Place</option>
-                                                <option value="Consolation">Consolation</option>
-                                            </select>
+                                            {isOrganizer ? (
+                                                <select
+                                                    className="bg-white text-gray-900 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-school-500"
+                                                    value={role.achievement || ''}
+                                                    onChange={(e) => updateResult(role.studentId, e.target.value)}
+                                                >
+                                                    <option value="">-- No Position --</option>
+                                                    <option value="Winner (1st)">Winner (1st)</option>
+                                                    <option value="Runner Up (2nd)">Runner Up (2nd)</option>
+                                                    <option value="Third Place">Third Place</option>
+                                                    <option value="Consolation">Consolation</option>
+                                                </select>
+                                            ) : (
+                                                role.achievement ? (
+                                                    <span className="text-sm font-medium text-school-700 bg-school-50 px-3 py-1 rounded">
+                                                        {role.achievement}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-sm text-gray-500 italic">Result pending</span>
+                                                )
+                                            )}
                                         </div>
                                     </div>
                                 ))}
