@@ -34,6 +34,13 @@ const EventDetails: React.FC = () => {
         event.headTeacherId === currentUser?.id ||
         event.staffRoles.some(r => r.teacherId === currentUser?.id);
 
+    // Set default tab based on user role
+    useEffect(() => {
+        if (!isOrganizer) {
+            setActiveTab('results');
+        }
+    }, [isOrganizer]);
+
     const handleSaveToContext = () => {
         if (event) {
             updateEvent(event);
@@ -180,29 +187,35 @@ const EventDetails: React.FC = () => {
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="flex border-b border-gray-200">
-                    <button
-                        onClick={() => setActiveTab('staff')}
-                        className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'staff' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'}`}
-                    >
-                        1. Staff Team
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('students')}
-                        className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'students' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'}`}
-                    >
-                        2. Student Participation
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('volunteers')}
-                        className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'volunteers' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'}`}
-                    >
-                        3. Volunteers
-                    </button>
+                    {isOrganizer && (
+                        <button
+                            onClick={() => setActiveTab('staff')}
+                            className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'staff' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'}`}
+                        >
+                            1. Staff Team
+                        </button>
+                    )}
+                    {isOrganizer && (
+                        <button
+                            onClick={() => setActiveTab('students')}
+                            className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'students' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'}`}
+                        >
+                            2. Student Participation
+                        </button>
+                    )}
+                    {isOrganizer && (
+                        <button
+                            onClick={() => setActiveTab('volunteers')}
+                            className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'volunteers' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'}`}
+                        >
+                            3. Volunteers
+                        </button>
+                    )}
                     <button
                         onClick={() => setActiveTab('results')}
                         className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'results' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'}`}
                     >
-                        4. Results & Notes
+                        {isOrganizer ? '4. Results & Notes' : 'Event Details'}
                     </button>
                 </div>
 

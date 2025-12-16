@@ -69,7 +69,7 @@ const TeacherProfile: React.FC = () => {
                 <div className="flex flex-col items-end gap-3">
                     {/* House Badge */}
                     {teacher.house ? (
-                        <div className={`px - 4 py - 2 rounded - lg font - bold uppercase tracking - wide flex items - center gap - 2 shadow - sm ${ getHouseColor(teacher.house) } `}>
+                        <div className={`px - 4 py - 2 rounded - lg font - bold uppercase tracking - wide flex items - center gap - 2 shadow - sm ${getHouseColor(teacher.house)} `}>
                             <Shield size={16} fill="currentColor" />
                             {teacher.house} House
                             {teacher.isHouseMaster && (
@@ -85,7 +85,7 @@ const TeacherProfile: React.FC = () => {
                     )}
 
                     {/* Workload Badge */}
-                    <div className={`px - 3 py - 1 rounded text - xs font - bold border ${ totalPeriods > 32 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-green-50 text-green-700 border-green-200' } `}>
+                    <div className={`px - 3 py - 1 rounded text - xs font - bold border ${totalPeriods > 32 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-green-50 text-green-700 border-green-200'} `}>
                         Load: {totalPeriods} / 40 Periods
                     </div>
                 </div>
@@ -95,17 +95,15 @@ const TeacherProfile: React.FC = () => {
                 <div className="flex border-b border-gray-100">
                     <button
                         onClick={() => setActiveTab('workload')}
-                        className={`flex - 1 py - 4 text - sm font - bold flex items - center justify - center gap - 2 transition - colors ${
-    activeTab === 'workload' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'
-} `}
+                        className={`flex - 1 py - 4 text - sm font - bold flex items - center justify - center gap - 2 transition - colors ${activeTab === 'workload' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'
+                            } `}
                     >
                         <Briefcase size={16} /> Academic Workload
                     </button>
                     <button
                         onClick={() => setActiveTab('duties')}
-                        className={`flex - 1 py - 4 text - sm font - bold flex items - center justify - center gap - 2 transition - colors ${
-    activeTab === 'duties' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'
-} `}
+                        className={`flex - 1 py - 4 text - sm font - bold flex items - center justify - center gap - 2 transition - colors ${activeTab === 'duties' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'
+                            } `}
                     >
                         <Trophy size={16} /> Co-Curricular Duties
                     </button>
@@ -154,14 +152,12 @@ const TeacherProfile: React.FC = () => {
                                 <div key={event.id} className="p-4 border border-gray-200 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/30 hover:bg-white hover:shadow-sm transition-all">
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className={`text - [10px] font - bold uppercase tracking - wide px - 2 py - 0.5 rounded ${
-    event.headTeacherId === teacher.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
-} `}>
+                                            <span className={`text - [10px] font - bold uppercase tracking - wide px - 2 py - 0.5 rounded ${event.headTeacherId === teacher.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
+                                                } `}>
                                                 {event.headTeacherId === teacher.id ? 'Teacher In-Charge' : 'Staff Member'}
                                             </span>
-                                            <span className={`text - [10px] font - bold uppercase tracking - wide px - 2 py - 0.5 rounded ${
-    event.status === 'Completed' ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-600'
-} `}>
+                                            <span className={`text - [10px] font - bold uppercase tracking - wide px - 2 py - 0.5 rounded ${event.status === 'Completed' ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-600'
+                                                } `}>
                                                 {event.status}
                                             </span>
                                         </div>
@@ -173,7 +169,7 @@ const TeacherProfile: React.FC = () => {
                                         </p>
                                         <div className="mt-2">
                                             <Link
-                                                to={`/ events / ${ event.id } `}
+                                                to={`/events/${event.id}`}
                                                 className="text-school-600 hover:text-school-700 text-sm font-medium flex items-center gap-1"
                                             >
                                                 Manage Event →
