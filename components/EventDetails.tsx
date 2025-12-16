@@ -323,13 +323,32 @@ const EventDetails: React.FC = () => {
                                     <Users size={16} /> Add Student Participant/Volunteer
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-                                    <input
-                                        type="text"
-                                        placeholder="Student Name..."
+                                    <select
                                         className="md:col-span-2 bg-white text-gray-900 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                                         value={newStudent.name}
-                                        onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                                    />
+                                        onChange={(e) => {
+                                            const selectedStudent = students.find(s => s.name === e.target.value);
+                                            if (selectedStudent) {
+                                                setNewStudent({
+                                                    ...newStudent,
+                                                    name: e.target.value,
+                                                    house: selectedStudent.house || 'Red'
+                                                });
+                                            } else {
+                                                setNewStudent({ ...newStudent, name: e.target.value });
+                                            }
+                                        }}
+                                    >
+                                        <option value="">-- Select Student --</option>
+                                        {students
+                                            .filter(s => s.classId && event.targetClassIds.includes(s.classId))
+                                            .map(s => (
+                                                <option key={s.id} value={s.name}>
+                                                    {s.name} ({s.className}) - {s.admissionNo}
+                                                </option>
+                                            ))
+                                        }
+                                    </select>
                                     <select
                                         className="bg-white text-gray-900 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                                         value={newStudent.house}
