@@ -102,7 +102,7 @@ const EventGallery: React.FC<EventGalleryProps> = ({ event, onImageChange }) => 
                         <img
                             src={event.galleryImages?.[0] || ''}
                             alt="Event"
-                            className="w-full max-h-96 object-cover rounded-lg border border-gray-200"
+                            className="w-full max-h-96 object-contain rounded-lg border border-gray-200"
                         />
                         <button
                             onClick={deleteImage}
