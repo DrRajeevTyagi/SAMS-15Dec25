@@ -15,11 +15,11 @@ const Sidebar: React.FC = () => {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['Admin', 'Teacher', 'Student'] },
     { name: 'My Profile', icon: User, path: `/my-profile`, roles: ['Teacher'] }, // NEW: Teacher Profile
     { name: 'My Profile', icon: GraduationCap, path: `/students/${currentUser.id}`, roles: ['Student'] }, // Existing Student Profile
-    { name: 'Academic Console', icon: Building2, path: '/admin-console', roles: ['Admin'] }, 
+    { name: 'Academic Console', icon: Building2, path: '/admin-console', roles: ['Admin'] },
     { name: 'Community', icon: MessageSquare, path: '/community', roles: ['Admin', 'Teacher', 'Student'] }, // NEW: Community
     { name: 'Students', icon: Users, path: '/students', roles: ['Admin', 'Teacher'] },
     { name: 'Staff Directory', icon: Briefcase, path: '/staff', roles: ['Admin', 'Teacher'] },
-    { name: 'House System', icon: Flag, path: '/houses', roles: ['Admin', 'Teacher', 'Student'] }, 
+    { name: 'House System', icon: Flag, path: '/houses', roles: ['Admin', 'Teacher', 'Student'] },
     { name: 'Daily Class Logs', icon: GraduationCap, path: '/academics', roles: ['Admin', 'Teacher'] },
     { name: 'Events', icon: Trophy, path: '/events', roles: ['Admin', 'Teacher', 'Student'] },
     { name: 'AI Assistant', icon: Sparkles, path: '/ai-tools', roles: ['Admin', 'Teacher'] },
@@ -35,6 +35,7 @@ const Sidebar: React.FC = () => {
       <div className="p-6 border-b border-school-800">
         <h1 className="text-2xl font-bold tracking-tight">ScholasticAI</h1>
         <p className="text-xs text-school-100 mt-1 opacity-70">Holistic School Intelligence</p>
+        <p className="text-[10px] text-school-100 mt-0.5 opacity-50">Designed by Rajeev with ❤️ for education</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
@@ -44,11 +45,10 @@ const Sidebar: React.FC = () => {
             <Link
               key={item.name}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
                   ? 'bg-school-600 text-white shadow-md'
                   : 'text-school-100 hover:bg-school-800 hover:text-white'
-              }`}
+                }`}
             >
               <item.icon size={20} />
               <span className="font-medium">{item.name}</span>
@@ -59,9 +59,8 @@ const Sidebar: React.FC = () => {
 
       <div className="p-4 border-t border-school-800">
         <div className="flex items-center gap-3 mb-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-school-900 ${
-              currentUser.role === 'Admin' ? 'bg-red-200' : currentUser.role === 'Teacher' ? 'bg-blue-200' : 'bg-green-200'
-          }`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-school-900 ${currentUser.role === 'Admin' ? 'bg-red-200' : currentUser.role === 'Teacher' ? 'bg-blue-200' : 'bg-green-200'
+            }`}>
             {currentUser.name.charAt(0)}
           </div>
           <div className="flex flex-col overflow-hidden">
@@ -69,11 +68,11 @@ const Sidebar: React.FC = () => {
             <span className="text-xs text-school-200">{currentUser.role}</span>
           </div>
         </div>
-        <button 
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 bg-school-800 hover:bg-school-700 py-2 rounded-lg text-xs font-medium transition-colors"
+        <button
+          onClick={logout}
+          className="w-full flex items-center justify-center gap-2 bg-school-800 hover:bg-school-700 py-2 rounded-lg text-xs font-medium transition-colors"
         >
-            <LogOut size={14} /> Logout
+          <LogOut size={14} /> Logout
         </button>
       </div>
     </div>
