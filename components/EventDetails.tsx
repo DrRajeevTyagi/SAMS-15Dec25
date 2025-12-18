@@ -293,12 +293,12 @@ const EventDetails: React.FC = () => {
                             2. Student Participation
                         </button>
                     )}
-                    {isOrganizer && (
+                    {(isOrganizer || isHouseIncharge) && (
                         <button
                             onClick={() => setActiveTab('volunteers')}
                             className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'volunteers' ? 'bg-school-50 text-school-700 border-b-2 border-school-600' : 'text-gray-500 hover:bg-gray-50'}`}
                         >
-                            3. Volunteers
+                            {isOrganizer ? '3. Volunteers' : '1. Volunteers'}
                         </button>
                     )}
                     <button
@@ -546,23 +546,24 @@ const EventDetails: React.FC = () => {
                                                     <td className="px-4 py-3 text-gray-600">{role.appliedDate || 'N/A'}</td>
                                                     <td className="px-4 py-3">
                                                         <div className="flex gap-2">
-                                                            {(isOrganizer || isHouseIncharge) && (
+                                                            {isHouseIncharge && (
                                                                 <>
                                                                     <button
-                                                                        onClick={() => isHouseIncharge ? handleHouseSelect(role.studentId) : promoteVolunteer(role.studentId)}
+                                                                        onClick={() => handleHouseSelect(role.studentId)}
                                                                         className="bg-green-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-green-700"
                                                                     >
                                                                         Select
                                                                     </button>
-                                                                    {isHouseIncharge && (
-                                                                        <button
-                                                                            onClick={() => handleHouseRegret(role.studentId)}
-                                                                            className="bg-red-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-red-700"
-                                                                        >
-                                                                            Regret
-                                                                        </button>
-                                                                    )}
+                                                                    <button
+                                                                        onClick={() => handleHouseRegret(role.studentId)}
+                                                                        className="bg-red-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-red-700"
+                                                                    >
+                                                                        Regret
+                                                                    </button>
                                                                 </>
+                                                            )}
+                                                            {isOrganizer && !isHouseIncharge && (
+                                                                <span className="text-xs text-gray-500 italic">Awaiting house selection</span>
                                                             )}
                                                         </div>
                                                     </td>
